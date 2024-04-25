@@ -45,8 +45,6 @@ public class Post extends BaseEntity {
 
 	private String reply;
 
-	private boolean visible;
-
 	@Enumerated(EnumType.STRING)
 	private PostType postType;
 
