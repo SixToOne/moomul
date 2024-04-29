@@ -61,10 +61,15 @@ public class UserController {
 	public ResponseEntity<ProfileResponseDto> modifyProfile(@RequestBody ProfileModifyRequestDto profileModifyRequestDto,
 		@PathVariable Long userId,//피드 주인 아이디
 		@AuthenticationPrincipal User user){
+		if(user==null){
+			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
+		}
 
 		if(!user.getId().equals(userId)){
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
+
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.modifyProfile(user,profileModifyRequestDto));
 	}
