@@ -3,9 +3,6 @@ package com.cheerup.moomul.domain.member.entity;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
-
 import com.cheerup.moomul.domain.BaseEntity;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.PostLike;
@@ -58,5 +55,8 @@ public class User extends BaseEntity {
 	public void updateUser(String nickname,String content){
 		this.nickname=nickname;
 		this.content=content;
+	}
+	public void updateUserImage(String image){
+		this.image=image;
 	}
 }
