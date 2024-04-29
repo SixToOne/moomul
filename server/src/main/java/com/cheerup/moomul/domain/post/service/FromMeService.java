@@ -40,7 +40,7 @@ public class FromMeService {
 	@Transactional
 	public void createFromMe(Long userId, PostRequestDto postRequestDto) {
 		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.USER_NOT_FOUND));
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
 			.content(postRequestDto.content())
@@ -57,27 +57,35 @@ public class FromMeService {
 		}
 	}
 
-	public PostResponseDto getFromMe(Long userId, Long frommeId) {
+	public PostResponseDto getFromMe(User user, Long userId, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
-			.orElseThrow(() -> new BaseException(ErrorCode.POST_NOT_FOUND));
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 
 		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
 			post.getOptionList().stream().map(Option::getId).toList());
 
 		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
-
-		boolean liked = postLikeRepository.existsByUserIdAndPostId(userId, frommeId);
+		boolean liked = false;
+		if (user != null) {
+			liked = postLikeRepository.existsByUserIdAndPostId(user.getId(), frommeId);
+		}
 
 		return PostResponseDto.from(post, voteId, liked);
 	}
 
-	public List<PostResponseDto> getFromMeFeed(Long userId, Pageable pageable) {
+	public List<PostResponseDto> getFromMeFeed(User user, Long userId, Pageable pageable) {
 		return postRepository.findByUserId(userId, PostType.FROM_ME, pageable)
 			.stream().map(post -> {
-				Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
-					post.getOptionList().stream().map(Option::getId).toList());
-				Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
-				boolean liked = postLikeRepository.existsByUserIdAndPostId(userId, post.getId());
+				Optional<Vote> vote;
+				Long voteId = null;
+				boolean liked = false;
+				if (user != null) {
+					System.out.println("user.getId(): " + user.getId());
+					vote = voteRepository.findByUserIdAndOptionIdIn(user.getId(),
+						post.getOptionList().stream().map(Option::getId).toList());
+					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+					liked = postLikeRepository.existsByUserIdAndPostId(user.getId(), post.getId());
+				}
 				return PostResponseDto.from(post, voteId, liked);
 			}).toList();
 	}
