@@ -3,6 +3,7 @@ package com.cheerup.moomul.domain.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileDto;
@@ -77,5 +78,9 @@ public class UserService {
 			profileDto.toMe(),
 			profileDto.fromMe(),
 			0L);
+	}
+
+	public IdCheckResponseDto idCheck(String username) {
+		return new IdCheckResponseDto(userRepository.findByUsername(username).isEmpty());
 	}
 }
