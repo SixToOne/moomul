@@ -3,6 +3,7 @@ package com.cheerup.moomul.domain.post.entity;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.SQLRestriction;
 
@@ -62,4 +63,10 @@ public class Post extends BaseEntity {
 
 	@OneToMany(mappedBy = "post")
 	private List<Option> optionList = new ArrayList<>();
+
+	@Formula("(SELECT COUNT(*) FROM post_like pl WHERE pl.post_id = id)")
+	private long likeCnt;
+
+	@Formula("(SELECT COUNT(*) FROM comment c WHERE c.post_id = id)")
+	private long commentCnt;
 }
