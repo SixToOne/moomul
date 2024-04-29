@@ -5,6 +5,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
+import com.cheerup.moomul.domain.member.entity.ProfileDto;
+import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.jwt.JwtProvider;
@@ -53,5 +55,27 @@ public class UserService {
 		if(userRepository.findById(userId).isPresent())
 			return userRepository.findById(userId).get();
 		return null;
+	}
+
+	public ProfileResponseDto profile(Long userId, User user) {
+		boolean isMine=false;
+		if(user!=null&&user.getId().equals(userId)){
+			isMine=true;
+		}
+		User curUser=userRepository.findById(userId)
+			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
+
+		ProfileDto profileDto= userRepository.findProfileById(userId);
+
+
+
+
+		return new ProfileResponseDto(profileDto.nickname(),
+			profileDto.content(),
+			profileDto.image(),
+			isMine,
+			profileDto.toMe(),
+			profileDto.fromMe(),
+			0L);
 	}
 }
