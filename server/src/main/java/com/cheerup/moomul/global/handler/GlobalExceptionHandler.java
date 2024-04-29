@@ -2,6 +2,7 @@ package com.cheerup.moomul.global.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -26,5 +27,12 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponse> handleBaseException(BaseException e) {
 		return ResponseEntity.status(e.getStatus()).body(new ErrorResponse(e.getStatus(), e.getCode()));
 	}
+
+	@ExceptionHandler(MethodArgumentNotValidException.class)
+	public ResponseEntity<ErrorResponse> handleValidatedException(MethodArgumentNotValidException e){
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+			.body(new ErrorResponse(HttpStatus.BAD_REQUEST.value(), "입력값이 유효하지 않음(null 확인)"));
+	}
+
 
 }
