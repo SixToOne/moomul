@@ -48,9 +48,6 @@ public class Post extends BaseEntity {
 	@Enumerated(EnumType.STRING)
 	private PostType postType;
 
-	@Enumerated(EnumType.STRING)
-	private WritingType writingType;
-
 	private boolean deleted = Boolean.FALSE;
 
 	@ManyToOne(fetch = FetchType.LAZY)
