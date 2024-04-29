@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
 import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
@@ -69,9 +70,24 @@ public class UserController {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.modifyProfile(user,profileModifyRequestDto));
+	}
+
+	@PatchMapping("/{userId}/images")
+	public ResponseEntity<ProfileResponseDto> modifyProfileImage(@RequestPart MultipartFile image,
+		@PathVariable Long userId,//피드 주인 아이디
+		@AuthenticationPrincipal User user){
+		if(user==null){
+			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
+		}
+
+		if(!user.getId().equals(userId)){
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(userService.modifyProfileImage(user,image));
 	}
 
 }
