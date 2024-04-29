@@ -39,8 +39,12 @@ public class JwtExceptionFilter extends OncePerRequestFilter {
 				setResponse(response, ErrorCode.EXPIRED_JWT_EXCEPTION);
 			}
 			//지원되지 않는 토큰인 경우
-			else {
+			else if(ErrorCode.UNKNOWN_JWT_EXCEPTION.getMessage().equals(message)){
 				setResponse(response, ErrorCode.UNKNOWN_JWT_EXCEPTION);
+			}
+			//토큰이 없는 경우
+			else if(ErrorCode.NO_JWT_TOKEN.getMessage().equals(message)){
+				setResponse(response,ErrorCode.NO_JWT_TOKEN);
 			}
 		}
 	}

@@ -54,4 +54,9 @@ public class User extends BaseEntity {
 
 	@OneToMany(mappedBy = "user")
 	private List<Vote> voteList = new ArrayList<>();
+
+	public void updateUser(String nickname,String content){
+		this.nickname=nickname;
+		this.content=content;
+	}
 }
