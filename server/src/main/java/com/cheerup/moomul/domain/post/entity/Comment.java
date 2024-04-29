@@ -1,7 +1,7 @@
 package com.cheerup.moomul.domain.post.entity;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.cheerup.moomul.domain.BaseEntity;
 import com.cheerup.moomul.domain.member.entity.User;
@@ -14,6 +14,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,4 +45,7 @@ public class Comment extends BaseEntity {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "parent_id")
 	private Comment parent;
+
+	@OneToMany(mappedBy = "parent", orphanRemoval = true)
+	private List<Comment> children = new ArrayList<>();
 }
