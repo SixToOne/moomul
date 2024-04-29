@@ -7,6 +7,7 @@ import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileDto;
+import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
@@ -68,9 +69,6 @@ public class UserService {
 
 		ProfileDto profileDto= userRepository.findProfileById(userId);
 
-
-
-
 		return new ProfileResponseDto(profileDto.nickname(),
 			profileDto.content(),
 			profileDto.image(),
@@ -82,5 +80,13 @@ public class UserService {
 
 	public IdCheckResponseDto idCheck(String username) {
 		return new IdCheckResponseDto(userRepository.findByUsername(username).isEmpty());
+	}
+
+	public ProfileResponseDto modifyProfile(User user, ProfileModifyRequestDto profileModifyRequestDto) {
+		User curUser=userRepository.findById(user.getId())
+			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
+		curUser.updateUser(profileModifyRequestDto.nickname(), profileModifyRequestDto.content());
+
+		return profile(user.getId(),curUser);
 	}
 }

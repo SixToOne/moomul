@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,10 +16,13 @@ import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
 import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
+import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.service.UserService;
+import com.cheerup.moomul.global.response.BaseException;
+import com.cheerup.moomul.global.response.ErrorCode;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -51,6 +55,18 @@ public class UserController {
 	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody IdCheckRequestDto idCheckRequestDto){
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.idCheck(idCheckRequestDto.username()));
+	}
+
+	@PatchMapping("/{userId}")
+	public ResponseEntity<ProfileResponseDto> modifyProfile(@RequestBody ProfileModifyRequestDto profileModifyRequestDto,
+		@PathVariable Long userId,//피드 주인 아이디
+		@AuthenticationPrincipal User user){
+
+		if(!user.getId().equals(userId)){
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(userService.modifyProfile(user,profileModifyRequestDto));
 	}
 
 }

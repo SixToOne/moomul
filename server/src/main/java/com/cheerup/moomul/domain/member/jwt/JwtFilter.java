@@ -11,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.service.UserService;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,8 +29,9 @@ public class JwtFilter extends OncePerRequestFilter {
 		String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
 		if(authorizationHeader == null) {
-			filterChain.doFilter(request, response);
-			return;
+			throw new JwtException("토큰이 없음");
+			//filterChain.doFilter(request, response);
+			//return;
 		}
 
 		// Header의 Authorization 값이 'Bearer '로 시작하지 않으면 => 잘못된 토큰
@@ -45,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
 			// Jwt Token에서 loginId 추출
 			Integer loginId = JwtProvider.getUserId(token);
-			System.out.println("여기까진 들어옴");
+
 			// 추출한 loginId로 User 찾아오기
 			User loginUser = userService.getUser(Long.valueOf(loginId));
 
