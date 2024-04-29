@@ -8,8 +8,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
+import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
@@ -42,6 +45,12 @@ public class UserController {
 	public ResponseEntity<ProfileResponseDto> profile(@PathVariable Long userId, @AuthenticationPrincipal User user){
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.profile(userId,user));
+	}
+
+	@PostMapping("/id-check")
+	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody IdCheckRequestDto idCheckRequestDto){
+		return ResponseEntity.status(HttpStatus.OK)
+			.body(userService.idCheck(idCheckRequestDto.username()));
 	}
 
 }
