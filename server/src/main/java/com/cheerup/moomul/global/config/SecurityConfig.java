@@ -18,7 +18,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import com.amazonaws.HttpMethod;
 import com.cheerup.moomul.domain.member.jwt.JwtExceptionFilter;
 import com.cheerup.moomul.domain.member.jwt.JwtFilter;
-import com.cheerup.moomul.domain.member.jwt.JwtProvider;
 import com.cheerup.moomul.domain.member.service.UserService;
 
 import lombok.RequiredArgsConstructor;

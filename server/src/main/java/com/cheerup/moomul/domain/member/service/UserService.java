@@ -1,6 +1,5 @@
 package com.cheerup.moomul.domain.member.service;
 
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
