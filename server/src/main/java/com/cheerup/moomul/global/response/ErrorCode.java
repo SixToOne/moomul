@@ -14,6 +14,8 @@ public enum ErrorCode {
 	EXPIRED_JWT_EXCEPTION(403,"JWT-002" ,"만료된 토큰"),
 	WRONG_TYPE_JWT_EXCEPTION(403,"JWT-003" ,"잘못된 타입의 토큰"),
 	UNKNOWN_JWT_EXCEPTION(403,"JWT-004" ,"이상한 값의 토큰"),
+	NO_JWT_TOKEN(403,"JWT-005","토큰이 없음"),
+	NO_AUTHORITY(401,"JWT-006","접근 권한이 없음"),
 
 	;
 
