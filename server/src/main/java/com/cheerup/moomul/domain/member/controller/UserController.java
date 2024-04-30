@@ -21,6 +21,7 @@ import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.service.UserService;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -47,7 +48,8 @@ public class UserController {
 	}
 
 	@GetMapping("/{userId}")
-	public ResponseEntity<ProfileResponseDto> profile(@PathVariable Long userId, @AuthenticationPrincipal User user){
+	public ResponseEntity<ProfileResponseDto> profile(@PathVariable Long userId, @AuthenticationPrincipal UserDetailDto user){
+
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.profile(userId,user));
 	}
@@ -61,12 +63,12 @@ public class UserController {
 	@PatchMapping("/{userId}")
 	public ResponseEntity<ProfileResponseDto> modifyProfile(@RequestBody ProfileModifyRequestDto profileModifyRequestDto,
 		@PathVariable Long userId,//피드 주인 아이디
-		@AuthenticationPrincipal User user){
+		@AuthenticationPrincipal UserDetailDto user){
 		if(user==null){
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if(!user.getId().equals(userId)){
+		if(!user.Id().equals(userId)){
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
