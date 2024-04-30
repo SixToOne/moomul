@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.service.FromMeService;
@@ -37,13 +37,13 @@ public class FromMeController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<PostResponseDto>> getFromMeFeed(@AuthenticationPrincipal User user,
+	public ResponseEntity<List<PostResponseDto>> getFromMeFeed(@AuthenticationPrincipal UserDetailDto user,
 		@PathVariable Long userId, Pageable pageable) {
 		return ResponseEntity.ok(fromMeService.getFromMeFeed(user, userId, pageable));
 	}
 
 	@GetMapping("/{frommeId}")
-	public ResponseEntity<PostResponseDto> getFromMe(@AuthenticationPrincipal User user, @PathVariable Long frommeId,
+	public ResponseEntity<PostResponseDto> getFromMe(@AuthenticationPrincipal UserDetailDto user, @PathVariable Long frommeId,
 		@PathVariable Long userId) {
 		return ResponseEntity.ok(fromMeService.getFromMe(user, userId, frommeId));
 	}

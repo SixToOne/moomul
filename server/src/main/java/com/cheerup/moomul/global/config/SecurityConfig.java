@@ -18,7 +18,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import com.amazonaws.HttpMethod;
 import com.cheerup.moomul.domain.member.jwt.JwtExceptionFilter;
 import com.cheerup.moomul.domain.member.jwt.JwtFilter;
-import com.cheerup.moomul.domain.member.service.UserService;
+import com.cheerup.moomul.domain.member.service.UserDetailService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig { // 스프링 시큐리티에 필요한 설정
-	private final UserService userService;
+	private final UserDetailService userDetailService;
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
@@ -37,7 +37,7 @@ public class SecurityConfig { // 스프링 시큐리티에 필요한 설정
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.sessionManagement(
 				(sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(new JwtFilter(userService), UsernamePasswordAuthenticationFilter.class)
+				.addFilterBefore(new JwtFilter(userDetailService), UsernamePasswordAuthenticationFilter.class)
 				.addFilterBefore(new JwtExceptionFilter(), JwtFilter.class);
 
 		http

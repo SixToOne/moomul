@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
@@ -57,7 +58,7 @@ public class FromMeService {
 		}
 	}
 
-	public PostResponseDto getFromMe(User user, Long userId, Long frommeId) {
+	public PostResponseDto getFromMe(UserDetailDto user, Long userId, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 
@@ -67,24 +68,24 @@ public class FromMeService {
 		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
 		boolean liked = false;
 		if (user != null) {
-			liked = postLikeRepository.existsByUserIdAndPostId(user.getId(), frommeId);
+			liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), frommeId);
 		}
 
 		return PostResponseDto.from(post, voteId, liked);
 	}
 
-	public List<PostResponseDto> getFromMeFeed(User user, Long userId, Pageable pageable) {
+	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, Long userId, Pageable pageable) {
 		return postRepository.findByUserId(userId, PostType.FROM_ME, pageable)
 			.stream().map(post -> {
 				Optional<Vote> vote;
 				Long voteId = null;
 				boolean liked = false;
 				if (user != null) {
-					System.out.println("user.getId(): " + user.getId());
-					vote = voteRepository.findByUserIdAndOptionIdIn(user.getId(),
+					System.out.println("user.getId(): " + user.Id());
+					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
 						post.getOptionList().stream().map(Option::getId).toList());
 					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
-					liked = postLikeRepository.existsByUserIdAndPostId(user.getId(), post.getId());
+					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
 				}
 				return PostResponseDto.from(post, voteId, liked);
 			}).toList();
