@@ -2,6 +2,7 @@ package com.cheerup.moomul.domain.post.controller;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -16,6 +17,8 @@ import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
+import com.cheerup.moomul.domain.post.dto.PostRequestDto;
+import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.service.ToMeService;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -32,7 +35,7 @@ public class ToMeController {
 	private final ToMeService toMeService;
 
 	@GetMapping("/{tomeId}/comments")
-	ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long userId, @PathVariable Long tomeId) {
+	ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long tomeId) {
 		PostCommentRequestParam param = new PostCommentRequestParam(1L, 1L, 1);
 		List<CommentResponseDto> result = toMeService.getComments(tomeId, param);
 		return new ResponseEntity<>(result, HttpStatus.ACCEPTED);
@@ -56,6 +59,31 @@ public class ToMeController {
 		PostCommentRequestParam param = new PostCommentRequestParam(1L, 1L, 1);
 		List<CommentResponseDto> result = toMeService.getComments(tomeId, param);
 		return new ResponseEntity<>(result, HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping
+	public ResponseEntity<Void> postFromMe(@PathVariable Long userId,
+		@RequestBody PostRequestDto postRequestDto) {
+		toMeService.createToMe(userId, postRequestDto);
+		return new ResponseEntity<>(HttpStatus.OK);
+	}
+
+	@GetMapping("/replied")
+	public ResponseEntity<List<PostResponseDto>> getRepliedFromMe(@AuthenticationPrincipal UserDetailDto user,
+		@PathVariable Long userId, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getRepliedToMe(user, userId, pageable));
+	}
+
+	@GetMapping("/not-replied")
+	public ResponseEntity<List<PostResponseDto>> getNotRepliedFromMe(@AuthenticationPrincipal UserDetailDto user,
+		@PathVariable Long userId, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getNotRepliedToMe(user, userId, pageable));
+	}
+
+	@GetMapping("/{frommeId}")
+	public ResponseEntity<PostResponseDto> getFromMe(@AuthenticationPrincipal UserDetailDto user, @PathVariable Long frommeId,
+		@PathVariable Long userId) {
+		return ResponseEntity.ok(toMeService.getToMe(user, userId, frommeId));
 	}
 
 }
