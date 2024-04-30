@@ -79,12 +79,12 @@ public class UserController {
 	@PatchMapping("/{userId}/images")
 	public ResponseEntity<ProfileResponseDto> modifyProfileImage(@RequestPart MultipartFile image,
 		@PathVariable Long userId,//피드 주인 아이디
-		@AuthenticationPrincipal User user){
+		@AuthenticationPrincipal UserDetailDto user){
 		if(user==null){
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if(!user.getId().equals(userId)){
+		if(!user.Id().equals(userId)){
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
