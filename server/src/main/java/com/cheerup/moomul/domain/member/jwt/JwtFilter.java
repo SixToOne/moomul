@@ -8,8 +8,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.cheerup.moomul.domain.member.entity.User;
-import com.cheerup.moomul.domain.member.service.UserService;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
+import com.cheerup.moomul.domain.member.service.UserDetailService;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -20,7 +20,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-	private final UserService userService;
+	private final UserDetailService userDetailService;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
@@ -47,7 +47,7 @@ public class JwtFilter extends OncePerRequestFilter {
 			Integer loginId = JwtProvider.getUserId(token);
 
 			// 추출한 loginId로 User 찾아오기
-			User loginUser = userService.getUser(Long.valueOf(loginId));
+			UserDetailDto loginUser = userDetailService.getUser(Long.valueOf(loginId));
 
 			// loginUser 정보로 UsernamePasswordAuthenticationToken 발급
 			UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

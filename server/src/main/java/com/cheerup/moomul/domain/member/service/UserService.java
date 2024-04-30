@@ -12,6 +12,7 @@ import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.jwt.JwtProvider;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.global.response.BaseException;
@@ -56,15 +57,10 @@ public class UserService {
 			refreshToken);
 
 	}
-	public User getUser(Long userId){
-		if(userRepository.findById(userId).isPresent())
-			return userRepository.findById(userId).get();
-		return null;
-	}
 
-	public ProfileResponseDto profile(Long userId, User user) {
+	public ProfileResponseDto profile(Long userId, UserDetailDto loginUserId) {
 		boolean isMine=false;
-		if(user!=null&&user.getId().equals(userId)){
+		if(loginUserId!=null&&loginUserId.Id().equals(userId)){
 			isMine=true;
 		}
 		User curUser=userRepository.findById(userId)
@@ -85,17 +81,17 @@ public class UserService {
 		return new IdCheckResponseDto(userRepository.findByUsername(username).isEmpty());
 	}
 
-	public ProfileResponseDto modifyProfile(User user, ProfileModifyRequestDto profileModifyRequestDto) {
-		User curUser=userRepository.findById(user.getId())
+	public ProfileResponseDto modifyProfile(UserDetailDto user, ProfileModifyRequestDto profileModifyRequestDto) {
+		User curUser=userRepository.findById(user.Id())
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 		curUser.updateUser(profileModifyRequestDto.nickname(), profileModifyRequestDto.content());
 
-		return profile(user.getId(),curUser);
+		return profile(user.Id(),new UserDetailDto(curUser.getId()));
 	}
 
 	@Transactional
-	public ProfileResponseDto modifyProfileImage(User user, MultipartFile image) {
-		User curUser=userRepository.findById(user.getId())
+	public ProfileResponseDto modifyProfileImage(UserDetailDto user, MultipartFile image) {
+		User curUser=userRepository.findById(user.Id())
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 
 		String imageUrl=s3Uploader.saveFile(image);
@@ -106,7 +102,7 @@ public class UserService {
 		}
 		curUser.updateUserImage(imageUrl);
 
-		return profile(user.getId(),curUser);
+		return profile(user.Id(),new UserDetailDto(curUser.getId()));
 	}
 
 }
