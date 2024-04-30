@@ -1,7 +1,9 @@
 package com.cheerup.moomul.domain.post.service;
 
 import java.util.List;
+import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,10 +13,18 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
+import com.cheerup.moomul.domain.post.dto.PostRequestDto;
+import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
+import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
+import com.cheerup.moomul.domain.post.entity.PostType;
+import com.cheerup.moomul.domain.post.entity.Vote;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
+import com.cheerup.moomul.domain.post.repository.OptionRepository;
+import com.cheerup.moomul.domain.post.repository.PostLikeRepository;
 import com.cheerup.moomul.domain.post.repository.PostRepository;
+import com.cheerup.moomul.domain.post.repository.VoteRepository;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
 
@@ -30,6 +40,9 @@ public class ToMeService {
 	private final UserRepository userRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
+	private final OptionRepository optionRepository;
+	private final VoteRepository voteRepository;
+	private final PostLikeRepository postLikeRepository;
 
 	public List<CommentResponseDto> getComments(Long postId, PostCommentRequestParam param) {
 		return commentRepository.findCommentByPostId(postId, param);
@@ -58,5 +71,73 @@ public class ToMeService {
 			comment.addParent(parent);
 		}
 		commentRepository.save(comment);
+	}
+
+	@Transactional
+	public void createToMe(Long userId, PostRequestDto postRequestDto) {
+		User user = userRepository.findById(userId)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		Post saved = postRepository.save(Post.builder()
+			.content(postRequestDto.content())
+			.user(user)
+			.nickname(postRequestDto.nickname())
+			.postType(PostType.TO_ME)
+			.build());
+
+		for (String option : postRequestDto.options()) {
+			optionRepository.save(Option.builder()
+				.post(saved)
+				.content(option)
+				.build());
+		}
+	}
+
+	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+
+		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
+			post.getOptionList().stream().map(Option::getId).toList());
+
+		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+		boolean liked = false;
+		if (user != null) {
+			liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), tomeId);
+		}
+
+		return PostResponseDto.from(post, voteId, liked);
+	}
+
+	public List<PostResponseDto> getRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
+		return postRepository.findRepliedPost(userId, PostType.TO_ME, pageable)
+			.stream().map(post -> {
+				Optional<Vote> vote;
+				Long voteId = null;
+				boolean liked = false;
+				if (user != null) {
+					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
+						post.getOptionList().stream().map(Option::getId).toList());
+					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
+				}
+				return PostResponseDto.from(post, voteId, liked);
+			}).toList();
+	}
+
+	public List<PostResponseDto> getNotRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
+		return postRepository.findNotRepliedPost(userId, PostType.TO_ME, pageable)
+			.stream().map(post -> {
+				Optional<Vote> vote;
+				Long voteId = null;
+				boolean liked = false;
+				if (user != null) {
+					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
+						post.getOptionList().stream().map(Option::getId).toList());
+					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
+				}
+				return PostResponseDto.from(post, voteId, liked);
+			}).toList();
 	}
 }
