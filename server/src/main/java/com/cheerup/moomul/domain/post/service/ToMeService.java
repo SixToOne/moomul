@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
@@ -35,7 +36,7 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void createComments(User user, Long tomeId, CommentRequestDto requestDto) {
+	public void createComments(UserDetailDto user, Long tomeId, CommentRequestDto requestDto) {
 		//현재 로그인 user, 게시글 userId, 게시글 Id
 
 		Post post = postRepository.findById(tomeId).orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
@@ -44,8 +45,11 @@ public class ToMeService {
 			parent = commentRepository.findById(requestDto.parentId())
 				.orElseThrow(() -> new BaseException(ErrorCode.NO_COMMENT_ERROR));
 		}
+		User loginUser = userRepository.findById(user.Id())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
 		Comment comment = Comment.builder()
-			.user(user)
+			.user(loginUser)
 			.post(post)
 			.content(requestDto.content())
 			.build();

@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.cheerup.moomul.domain.member.entity.User;
+import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
@@ -39,14 +39,15 @@ public class ToMeController {
 	}
 
 	@PostMapping("{tomeId}/comments")
-	ResponseEntity<List<CommentResponseDto>> postComments(@AuthenticationPrincipal User user, @PathVariable Long userId,
+	ResponseEntity<List<CommentResponseDto>> postComments(@AuthenticationPrincipal UserDetailDto user,
+		@PathVariable Long userId,
 		@PathVariable Long tomeId, @RequestBody CommentRequestDto comment) {
 
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.getId().equals(userId)) {
+		if (!user.Id().equals(userId)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
