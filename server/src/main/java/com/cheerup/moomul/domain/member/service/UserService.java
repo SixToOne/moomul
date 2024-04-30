@@ -90,8 +90,8 @@ public class UserService {
 	}
 
 	@Transactional
-	public ProfileResponseDto modifyProfileImage(User user, MultipartFile image) {
-		User curUser=userRepository.findById(user.getId())
+	public ProfileResponseDto modifyProfileImage(UserDetailDto user, MultipartFile image) {
+		User curUser=userRepository.findById(user.Id())
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 
 		String imageUrl=s3Uploader.saveFile(image);
@@ -102,7 +102,7 @@ public class UserService {
 		}
 		curUser.updateUserImage(imageUrl);
 
-		return profile(user.getId(),new UserDetailDto(curUser.getId()));
+		return profile(user.Id(),new UserDetailDto(curUser.getId()));
 	}
 
 }
