@@ -1,7 +1,7 @@
 package com.cheerup.moomul.domain.member.entity;
 
 public record LoginResponseDto(
-	Long id,
+	Long userId,
 	String accessToken,
 	String refreshToken
 ) {

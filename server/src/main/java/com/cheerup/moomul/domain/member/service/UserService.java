@@ -5,15 +5,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
-import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
-import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileDto;
 import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
-import com.cheerup.moomul.domain.member.jwt.JwtProvider;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -27,7 +24,6 @@ import lombok.RequiredArgsConstructor;
 public class UserService {
 
 	private final UserRepository userRepository;
-	private final JwtProvider jwtProvider;
 	private final S3Uploader s3Uploader;
 
 	public Void signUp(SignUpDto signUpDto) {
@@ -40,23 +36,7 @@ public class UserService {
 		return null;
 	}
 
-	public LoginResponseDto login(LoginRequestDto loginRequestDto) {
-		User user=userRepository.findByUsername(loginRequestDto.username())
-			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 
-		if(!user.getPassword().equals(loginRequestDto.password()))
-			throw new BaseException(ErrorCode.WRONG_PASSWORD);
-
-		String accessToken=jwtProvider.createToken(user.getId(),1000L * 60 * 60 * 24 * 7);
-		String refreshToken=jwtProvider.createToken(user.getId(),1000L * 60 * 60 * 24 * 7);
-
-
-		return new LoginResponseDto(
-			user.getId(),
-			accessToken,
-			refreshToken);
-
-	}
 
 	public ProfileResponseDto profile(Long userId, UserDetailDto loginUserId) {
 		boolean isMine=false;
