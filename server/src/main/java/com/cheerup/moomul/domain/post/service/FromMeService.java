@@ -10,10 +10,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
+import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
+import com.cheerup.moomul.domain.post.entity.PostLike;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.entity.Vote;
 import com.cheerup.moomul.domain.post.repository.OptionRepository;
@@ -31,7 +33,6 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class FromMeService {
-
 	private final PostRepository postRepository;
 	private final OptionRepository optionRepository;
 	private final PostLikeRepository postLikeRepository;
@@ -55,6 +56,20 @@ public class FromMeService {
 				.post(saved)
 				.content(option)
 				.build());
+		}
+	}
+
+	@Transactional
+	public void removeFromMe(Long userId, Long frommeId) {
+		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		User loginUser = userRepository.findById(userId)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		if (post.getUser().equals(loginUser)) {
+			postRepository.delete(post);
+		} else {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 	}
 
@@ -89,5 +104,30 @@ public class FromMeService {
 				}
 				return PostResponseDto.from(post, voteId, liked);
 			}).toList();
+
+	}
+
+	@Transactional
+	public PostLikeResponseDto likeFromMe(UserDetailDto user, Long userId, Long frommeId) {
+		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		if (!post.getUser().getId().equals(userId)) {
+			throw new BaseException(ErrorCode.NO_POST_ERROR);
+		}
+
+		User loginUser = userRepository.findById(user.Id())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_AUTHORITY));
+		PostLike isLike = postLikeRepository.findByPostIdAndUserId(frommeId, loginUser.getId());
+
+		if (isLike != null) {
+			postLikeRepository.deleteById(isLike.getId());
+		} else {
+			postLikeRepository.save(PostLike.builder()
+				.post(post)
+				.user(loginUser)
+				.build());
+		}
+
+		return new PostLikeResponseDto(postLikeRepository.countByPostId(frommeId));
 	}
 }

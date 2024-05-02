@@ -69,4 +69,8 @@ public class Post extends BaseEntity {
 
 	@Formula("(SELECT COUNT(*) FROM comment c WHERE c.post_id = id)")
 	private long commentCnt;
+
+	public void addReply(String reply) {
+		this.reply = reply;
+	}
 }
