@@ -15,12 +15,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
 import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
-import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
-import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
-import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.service.UserService;
 import com.cheerup.moomul.global.response.BaseException;
@@ -35,17 +32,13 @@ import lombok.RequiredArgsConstructor;
 public class UserController {
 	private final UserService userService;
 
+
 	@PostMapping("/signup")
 	public ResponseEntity<Void> signUp(@RequestBody @Valid SignUpDto signUpDto){
 		return ResponseEntity.status(HttpStatus.CREATED)
 			.body(userService.signUp(signUpDto));
 	}
 
-	@PostMapping("/login")
-	public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto){
-		return ResponseEntity.status(HttpStatus.OK)
-			.body(userService.login(loginRequestDto));
-	}
 
 	@GetMapping("/{userId}")
 	public ResponseEntity<ProfileResponseDto> profile(@PathVariable Long userId, @AuthenticationPrincipal UserDetailDto user){
@@ -91,5 +84,6 @@ public class UserController {
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.modifyProfileImage(user,image));
 	}
+
 
 }
