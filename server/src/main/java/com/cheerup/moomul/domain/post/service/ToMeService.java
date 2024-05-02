@@ -13,11 +13,14 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
+import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
+import com.cheerup.moomul.domain.post.entity.PostLike;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.entity.Vote;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
@@ -36,7 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class ToMeService {
-
 	private final UserRepository userRepository;
 	private final PostRepository postRepository;
 	private final CommentRepository commentRepository;
@@ -52,7 +54,8 @@ public class ToMeService {
 	public void createComments(UserDetailDto user, Long tomeId, CommentRequestDto requestDto) {
 		//현재 로그인 user, 게시글 userId, 게시글 Id
 
-		Post post = postRepository.findById(tomeId).orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 		Comment parent = null;
 		if (requestDto.parentId() != null) {
 			parent = commentRepository.findById(requestDto.parentId())
@@ -93,6 +96,60 @@ public class ToMeService {
 		}
 	}
 
+	@Transactional
+	public void removeToMe(Long userId, Long tomeId) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		User loginUser = userRepository.findById(userId)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		if (post.getUser().equals(loginUser)) {
+			postRepository.delete(post);
+		} else {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+	}
+
+	@Transactional
+	public void createReplies(ReplyRequestDto reply, Long userId, Long tomeId, UserDetailDto user, Pageable pageable) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		User loginUser = userRepository.findById(userId)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		if (post.getUser().equals(loginUser)) {
+			post.addReply(reply.reply());
+			getNotRepliedToMe(user, userId, pageable);
+			getRepliedToMe(user, userId, pageable);
+		} else {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+	}
+
+	@Transactional
+	public PostLikeResponseDto likeToMe(UserDetailDto user, Long userId, Long tomeId) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		if (!post.getUser().getId().equals(userId)) {
+			throw new BaseException(ErrorCode.NO_POST_ERROR);
+		}
+
+		User loginUser = userRepository.findById(user.Id())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_AUTHORITY));
+		PostLike isLike = postLikeRepository.findByPostIdAndUserId(tomeId, loginUser.getId());
+
+		if (isLike != null) {
+			postLikeRepository.deleteById(isLike.getId());
+		} else {
+			postLikeRepository.save(PostLike.builder()
+				.post(post)
+				.user(loginUser)
+				.build());
+		}
+
+		return new PostLikeResponseDto(postLikeRepository.countByPostId(tomeId));
+	}
+
 	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
@@ -128,6 +185,7 @@ public class ToMeService {
 	public List<PostResponseDto> getNotRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
 		return postRepository.findNotRepliedPost(userId, PostType.TO_ME, pageable)
 			.stream().map(post -> {
+				System.out.println(post.getId());
 				Optional<Vote> vote;
 				Long voteId = null;
 				boolean liked = false;
