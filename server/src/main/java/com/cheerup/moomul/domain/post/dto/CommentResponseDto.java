@@ -14,4 +14,5 @@ public record CommentResponseDto(
 	public CommentResponseDto(Long id, String nickname, String content, LocalDateTime createdAt) {
 		this(id, nickname, content, createdAt, new ArrayList<>());
 	}
+
 }
