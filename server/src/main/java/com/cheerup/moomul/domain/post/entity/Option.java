@@ -41,4 +41,5 @@ public class Option extends BaseEntity {
 
 	@Formula("(SELECT COUNT(*) FROM vote v WHERE v.option_id = id)")
 	private Long voteCnt;
+
 }

@@ -17,6 +17,7 @@ import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
@@ -64,11 +65,7 @@ public class ToMeService {
 		User loginUser = userRepository.findById(user.Id())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
-		Comment comment = Comment.builder()
-			.user(loginUser)
-			.post(post)
-			.content(requestDto.content())
-			.build();
+		Comment comment = Comment.builder().user(loginUser).post(post).content(requestDto.content()).build();
 
 		if (parent != null) {
 			comment.addParent(parent);
@@ -78,8 +75,7 @@ public class ToMeService {
 
 	@Transactional
 	public void createToMe(Long userId, PostRequestDto postRequestDto) {
-		User user = userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
 			.content(postRequestDto.content())
@@ -89,10 +85,7 @@ public class ToMeService {
 			.build());
 
 		for (String option : postRequestDto.options()) {
-			optionRepository.save(Option.builder()
-				.post(saved)
-				.content(option)
-				.build());
+			optionRepository.save(Option.builder().post(saved).content(option).build());
 		}
 	}
 
@@ -100,8 +93,7 @@ public class ToMeService {
 	public void removeToMe(Long userId, Long tomeId) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User loginUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
 			postRepository.delete(post);
@@ -114,8 +106,7 @@ public class ToMeService {
 	public void createReplies(ReplyRequestDto reply, Long userId, Long tomeId, UserDetailDto user, Pageable pageable) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId)
-			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User loginUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
 			post.addReply(reply.reply());
@@ -141,13 +132,33 @@ public class ToMeService {
 		if (isLike != null) {
 			postLikeRepository.deleteById(isLike.getId());
 		} else {
-			postLikeRepository.save(PostLike.builder()
-				.post(post)
-				.user(loginUser)
-				.build());
+			postLikeRepository.save(PostLike.builder().post(post).user(loginUser).build());
 		}
 
 		return new PostLikeResponseDto(postLikeRepository.countByPostId(tomeId));
+	}
+
+	@Transactional
+	public void selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId, UserDetailDto user) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		User loginUser = userRepository.findById(user.Id())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		Option options = optionRepository.findById(optionId.voted())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
+
+		if (post.getUser().equals(loginUser) && !post.getOptionList().isEmpty()) {
+			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
+
+			if (isVoted != null) {
+				voteRepository.deleteById(isVoted.getId());
+			} else {
+				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+			}
+			getToMe(user, userId, tomeId);
+		} else {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
 	}
 
 	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {
@@ -167,35 +178,33 @@ public class ToMeService {
 	}
 
 	public List<PostResponseDto> getRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findRepliedPost(userId, PostType.TO_ME, pageable)
-			.stream().map(post -> {
-				Optional<Vote> vote;
-				Long voteId = null;
-				boolean liked = false;
-				if (user != null) {
-					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
-						post.getOptionList().stream().map(Option::getId).toList());
-					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
-					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
-				}
-				return PostResponseDto.from(post, voteId, liked);
-			}).toList();
+		return postRepository.findRepliedPost(userId, PostType.TO_ME, pageable).stream().map(post -> {
+			Optional<Vote> vote;
+			Long voteId = null;
+			boolean liked = false;
+			if (user != null) {
+				vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
+					post.getOptionList().stream().map(Option::getId).toList());
+				voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+				liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
+			}
+			return PostResponseDto.from(post, voteId, liked);
+		}).toList();
 	}
 
 	public List<PostResponseDto> getNotRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findNotRepliedPost(userId, PostType.TO_ME, pageable)
-			.stream().map(post -> {
-				System.out.println(post.getId());
-				Optional<Vote> vote;
-				Long voteId = null;
-				boolean liked = false;
-				if (user != null) {
-					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
-						post.getOptionList().stream().map(Option::getId).toList());
-					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
-					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
-				}
-				return PostResponseDto.from(post, voteId, liked);
-			}).toList();
+		return postRepository.findNotRepliedPost(userId, PostType.TO_ME, pageable).stream().map(post -> {
+			System.out.println(post.getId());
+			Optional<Vote> vote;
+			Long voteId = null;
+			boolean liked = false;
+			if (user != null) {
+				vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
+					post.getOptionList().stream().map(Option::getId).toList());
+				voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
+				liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
+			}
+			return PostResponseDto.from(post, voteId, liked);
+		}).toList();
 	}
 }

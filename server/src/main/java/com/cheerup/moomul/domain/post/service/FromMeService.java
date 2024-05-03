@@ -13,6 +13,7 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostLike;
@@ -129,5 +130,28 @@ public class FromMeService {
 		}
 
 		return new PostLikeResponseDto(postLikeRepository.countByPostId(frommeId));
+	}
+
+	@Transactional
+	public void selectFromMeVote(VoteRequestDto optionId, Long userId, Long frommeId, UserDetailDto user) {
+		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
+		User loginUser = userRepository.findById(user.Id())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		Option options = optionRepository.findById(optionId.voted())
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
+
+		if (!post.getOptionList().isEmpty()) {
+			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
+
+			if (isVoted != null) {
+				voteRepository.deleteById(isVoted.getId());
+			} else {
+				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+			}
+			getFromMe(user, userId, frommeId);
+		} else {
+			throw new BaseException(ErrorCode.NO_OPTION_ERROR);
+		}
 	}
 }

@@ -10,4 +10,6 @@ import com.cheerup.moomul.domain.post.entity.Vote;
 public interface VoteRepository extends JpaRepository<Vote, Long> {
 
 	Optional<Vote> findByUserIdAndOptionIdIn(Long userId, List<Long> optionIds);
+
+	Vote findByUserIdAndOptionId(Long userId, Long voted);
 }
