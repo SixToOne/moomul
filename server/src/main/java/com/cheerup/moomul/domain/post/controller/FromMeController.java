@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.service.FromMeService;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -79,4 +81,16 @@ public class FromMeController {
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
+	@PatchMapping("/{frommeId}/votes")
+	public ResponseEntity<PostResponseDto> voteFromMe(@AuthenticationPrincipal UserDetailDto user,
+		@RequestBody VoteRequestDto voted,
+		@PathVariable Long userId,
+		@PathVariable Long frommeId) {
+		if (user == null) {
+			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
+		}
+
+		fromMeService.selectFromMeVote(voted, userId, frommeId, user);
+		return ResponseEntity.ok().build();
+	}
 }

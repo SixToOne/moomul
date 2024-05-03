@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -22,6 +23,7 @@ import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.service.ToMeService;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -133,4 +135,20 @@ public class ToMeController {
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
+	@PatchMapping("/{tomeId}/votes")
+	public ResponseEntity<PostResponseDto> voteToMe(@AuthenticationPrincipal UserDetailDto user,
+		@RequestBody VoteRequestDto voted,
+		@PathVariable Long userId,
+		@PathVariable Long tomeId) {
+		if (user == null) {
+			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
+		}
+
+		if (!user.Id().equals(userId)) {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+
+		toMeService.selectToMeVote(voted, userId, tomeId, user);
+		return ResponseEntity.ok().build();
+	}
 }
