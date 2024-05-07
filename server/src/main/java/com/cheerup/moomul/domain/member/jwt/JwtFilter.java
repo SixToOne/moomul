@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
 public class JwtFilter extends OncePerRequestFilter {
 
 	private final UserDetailService userDetailService;
-	private final String[] whiteListUri={"/api/users/auth"};
+	private final String[] whiteListUri={"/api/users/auth", "/api/ws"};
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
