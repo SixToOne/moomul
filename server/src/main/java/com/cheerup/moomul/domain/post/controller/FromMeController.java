@@ -16,6 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
+import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
+import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
+import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
 import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
@@ -92,5 +95,32 @@ public class FromMeController {
 
 		fromMeService.selectFromMeVote(voted, userId, frommeId, user);
 		return ResponseEntity.ok().build();
+	}
+
+	@GetMapping("/{frommeId}/comments")
+	ResponseEntity<List<CommentResponseDto>> getComments(@PathVariable Long frommeId) {
+		PostCommentRequestParam param = new PostCommentRequestParam(1L, 1L, 1);
+		List<CommentResponseDto> result = fromMeService.getComments(frommeId, param);
+		return new ResponseEntity<>(result, HttpStatus.ACCEPTED);
+	}
+
+	@PostMapping("{frommeId}/comments")
+	ResponseEntity<List<CommentResponseDto>> postComments(@AuthenticationPrincipal UserDetailDto user,
+		@PathVariable Long userId,
+		@PathVariable Long frommeId, @RequestBody CommentRequestDto comment) {
+
+		if (user == null) {
+			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
+		}
+
+		if (!user.Id().equals(userId)) {
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		}
+
+		fromMeService.createComments(user, frommeId, comment); //현재 로그인 user, 게시글 userId, 게시글 Id
+
+		PostCommentRequestParam param = new PostCommentRequestParam(1L, 1L, 1);
+		List<CommentResponseDto> result = fromMeService.getComments(frommeId, param);
+		return new ResponseEntity<>(result, HttpStatus.ACCEPTED);
 	}
 }
