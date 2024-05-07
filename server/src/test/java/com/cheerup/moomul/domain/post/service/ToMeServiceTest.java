@@ -102,7 +102,7 @@ class ToMeServiceTest {
 			.parent(parent)
 			.build();
 
-		given(postRepository.findById(1L)).willReturn(Optional.of(post));
+		given(postRepository.findById(1L, PostType.TO_ME)).willReturn(Optional.of(post));
 		given(commentRepository.findById(1L)).willReturn(Optional.of(comment));
 		given(userRepository.findById(1L)).willReturn(Optional.of(user));
 
