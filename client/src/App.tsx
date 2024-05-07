@@ -1,12 +1,22 @@
-import { RouterProvider } from 'react-router-dom';
-import router from '@/router/AppRouter';
-import { RecoilRoot } from 'recoil';
+import React from 'react';
+import { Outlet } from 'react-router-dom';
+import { axiosConfig } from '@/config/axios';
+import Header from '@/organisms/Header';
+
+import useAuth from './hooks/useAuth';
+
+axiosConfig();
 
 function App() {
+  useAuth();
+
   return (
-    <RecoilRoot>
-      <RouterProvider router={router} />
-    </RecoilRoot>
+    <>
+      <Header />
+      <main>
+        <Outlet />
+      </main>
+    </>
   );
 }
 
