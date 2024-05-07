@@ -22,10 +22,13 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
+import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
+import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
+import com.cheerup.moomul.domain.post.repository.OptionRepository;
 import com.cheerup.moomul.domain.post.repository.PostRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +42,9 @@ class ToMeServiceTest {
 
 	@Mock
 	UserRepository userRepository;
+
+	@Mock
+	OptionRepository optionRepository;
 
 	@InjectMocks
 	ToMeService toMeService;
@@ -112,6 +118,48 @@ class ToMeServiceTest {
 
 		// Then
 		then(commentRepository).should(times(1)).save(any(Comment.class));
+	}
+
+	@DisplayName("투미 생성 테스트")
+	@Test
+	void createToMe() {
+
+		PostRequestDto postRequestDto = new PostRequestDto("nickname", "content",
+			List.of("option1", "option2", "option3"));
+
+		//given
+		User user = User.builder()
+			.id(1L)
+			.username("늘보")
+			.content("잠꾸러기 늘보 채널입니다.")
+			.nickname("늘보")
+			.build();
+
+		Post saved = Post.builder()
+			.id(1L)
+			.content("content")
+			.user(user)
+			.nickname("nickname")
+			.postType(PostType.TO_ME)
+			.build();
+
+		Option option = Option.builder()
+			.id(1L)
+			.build();
+
+		given(userRepository.findById(1L)).willReturn(Optional.of(user));
+		given(postRepository.save(any(Post.class))).willReturn(saved);
+		given(optionRepository.save(any(Option.class))).willReturn(option);
+
+		//when
+		assertThatCode(
+			() -> toMeService.createToMe(1L, postRequestDto)).doesNotThrowAnyException();
+
+		//then
+		BDDMockito.then(userRepository).should(BDDMockito.times(1)).findById(1L);
+		BDDMockito.then(postRepository).should(BDDMockito.times(1)).save(any(Post.class));
+		BDDMockito.then(optionRepository).should(BDDMockito.times(3)).save(any(Option.class));
+
 	}
 
 }
