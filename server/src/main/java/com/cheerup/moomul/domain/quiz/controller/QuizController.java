@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cheerup.moomul.domain.quiz.dto.CancelRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.CancelResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.CreateRequestDto;
+import com.cheerup.moomul.domain.quiz.dto.StompException;
 import com.cheerup.moomul.domain.quiz.dto.WaitingResponse;
 import com.cheerup.moomul.domain.quiz.dto.JoinRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.ResultRequestDto;
@@ -54,7 +55,7 @@ public class QuizController {
 
 	@MessageMapping("/quiz/{userId}/join")
 	public void join(@DestinationVariable Long userId, JoinRequestDto joinRequestDto) {
-		Room room = roomRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+		Room room = roomRepository.findById(2L).orElseThrow(() -> new StompException("방이 존재하지 않습니다."));
 
 		Party party = partyRepository.findById(userId)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));

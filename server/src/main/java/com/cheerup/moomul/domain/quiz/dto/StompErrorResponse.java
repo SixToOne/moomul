@@ -1,6 +1,6 @@
 package com.cheerup.moomul.domain.quiz.dto;
 
-public record ErrorResponse(
+public record StompErrorResponse(
 	String type,
 	String message
 ) {
