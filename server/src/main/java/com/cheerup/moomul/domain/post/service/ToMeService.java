@@ -139,26 +139,51 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId, UserDetailDto user) {
-		Post post = postRepository.findById(tomeId, PostType.TO_ME)
+	public PostResponseDto selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId,
+		UserDetailDto user) { //userId 채널주인
+		Post post = postRepository.findById(tomeId, PostType.TO_ME) //현재 게시글
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(user.Id())
+		User loginUser = userRepository.findById(user.Id()) //현재 로그인 유저
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
-		Option options = optionRepository.findById(optionId.voted())
+		Option options = optionRepository.findById(optionId.voted()) // 투표를 원하는 옵션
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
 
-		if (post.getUser().equals(loginUser) && !post.getOptionList().isEmpty()) {
-			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
+		List<Option> optionList = post.getOptionList();
+		log.info("optionList: " + optionList);
 
-			if (isVoted != null) {
-				voteRepository.deleteById(isVoted.getId());
-			} else {
-				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+		if (post.getUser().equals(loginUser) && !optionList.isEmpty()) {
+			Vote voted = null;
+			for (Option option : optionList) { // 게시글의 옵션들
+				// 게시글의 옵션에 Vote가 있는지 판단
+				Vote vote = voteRepository.findByOptionIdAndUserId(option.getId(), loginUser.getId()).orElse(null);
+				if (vote != null) {
+					voted = vote;
+				}
 			}
-			getToMe(user, userId, tomeId);
+
+			Vote newvote = Vote.builder()
+				.user(loginUser)
+				.option(options)
+				.build();
+
+			if (voted != null) { //voted == newVoted   if 다르면 --> 추가   else 아무일도 없었다 ..
+				deleteVote(voted);
+			}
+
+			if (voted == null || voted.getUser() != newvote.getUser()) {
+				voteRepository.save(newvote);
+			}
+
+			return getToMe(user, userId, tomeId);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
+	}
+
+	@Transactional
+	public void deleteVote(Vote voted) {
+		log.info("Deleting vote: " + voted);
+		voteRepository.delete(voted);
 	}
 
 	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {
