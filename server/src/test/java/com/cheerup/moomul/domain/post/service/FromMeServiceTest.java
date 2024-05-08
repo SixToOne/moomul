@@ -86,7 +86,7 @@ class FromMeServiceTest {
 			PostResponseDto.from(Post.builder()
 				.id(1L)
 				.optionList(List.of(Option.builder().id(1L).build()))
-				.build(), 1L, true));
+				.build(), 1L, 1L, true));
 
 		//given
 		given(postRepository.findByUserId(1L, PostType.FROM_ME, pageImpl.getPageable())).willReturn(postList);
