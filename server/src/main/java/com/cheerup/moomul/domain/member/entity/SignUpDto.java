@@ -1,13 +1,14 @@
 package com.cheerup.moomul.domain.member.entity;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 public record SignUpDto(
-	@NotNull
+	@NotBlank
 	String username,
-	@NotNull
+	@NotBlank
 	String password,
-	@NotNull
+	@NotBlank
 	String nickname
 ) {
 }

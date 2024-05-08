@@ -27,6 +27,10 @@ public class UserService {
 	private final S3Uploader s3Uploader;
 
 	public Void signUp(SignUpDto signUpDto) {
+		if(userRepository.findByUsername(signUpDto.username()).isPresent()){
+			throw new BaseException(ErrorCode.DUPLICATE_USER_ERROR);
+		}
+
 		userRepository.save(
 			User.builder()
 			.username(signUpDto.username())
