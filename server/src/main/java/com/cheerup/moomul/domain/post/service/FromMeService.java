@@ -1,5 +1,6 @@
 package com.cheerup.moomul.domain.post.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -99,13 +100,14 @@ public class FromMeService {
 	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, Long userId, Pageable pageable) {
 		return postRepository.findByUserId(userId, PostType.FROM_ME, pageable)
 			.stream().map(post -> {
+				List<Option> optionList = post.getOptionList() != null ? post.getOptionList() : Collections.emptyList();
 				Optional<Vote> vote;
 				Long voteId = null;
 				boolean liked = false;
 				if (user != null) {
-					System.out.println("user.getId(): " + user.Id());
+					// System.out.println("user.getId(): " + user.Id());
 					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
-						post.getOptionList().stream().map(Option::getId).toList());
+						optionList.stream().map(Option::getId).toList());
 					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
 					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
 				}
