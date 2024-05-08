@@ -166,11 +166,11 @@ public class ToMeService {
 				.option(options)
 				.build();
 
-			if (voted != null) { //voted == newVoted   if 다르면 --> 추가   else 아무일도 없었다 ..
+			if (voted != null) {
 				deleteVote(voted);
 			}
 
-			if (voted == null || voted.getUser() != newvote.getUser()) {
+			if (voted == null || voted.getOption() != newvote.getOption()) {
 				voteRepository.save(newvote);
 			}
 
