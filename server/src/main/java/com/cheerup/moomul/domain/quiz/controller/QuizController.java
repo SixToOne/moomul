@@ -1,12 +1,10 @@
 package com.cheerup.moomul.domain.quiz.controller;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.web.bind.annotation.RestController;
@@ -14,7 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.quiz.dto.CancelRequestDto;
+import com.cheerup.moomul.domain.quiz.dto.CancelResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.CreateRequestDto;
+import com.cheerup.moomul.domain.quiz.dto.WaitingResponse;
 import com.cheerup.moomul.domain.quiz.dto.JoinRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.QuizResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.ResultRequestDto;
@@ -22,16 +22,12 @@ import com.cheerup.moomul.domain.quiz.dto.ResultResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.SubmitRequestDto;
 import com.cheerup.moomul.domain.quiz.entity.Participant;
 import com.cheerup.moomul.domain.quiz.entity.Party;
-import com.cheerup.moomul.domain.quiz.entity.Quiz;
 import com.cheerup.moomul.domain.quiz.entity.QuizInfo;
-import com.cheerup.moomul.domain.quiz.entity.Rank;
 import com.cheerup.moomul.domain.quiz.entity.Room;
 import com.cheerup.moomul.domain.quiz.repository.PartyRepository;
 import com.cheerup.moomul.domain.quiz.repository.QuizInfoRepository;
+import com.cheerup.moomul.domain.quiz.repository.QuizRepository;
 import com.cheerup.moomul.domain.quiz.repository.RoomRepository;
-import com.cheerup.moomul.domain.quiz.service.QuizService;
-import com.cheerup.moomul.global.response.BaseException;
-import com.cheerup.moomul.global.response.ErrorCode;
 
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -41,47 +37,41 @@ import lombok.RequiredArgsConstructor;
 public class QuizController {
 
 	private final SimpMessageSendingOperations sendingOperations;
-	private final QuizInfoRepository quizInfoRepository;
-	private final QuizService quizService;
+	private final QuizRepository quizRepository;
 	private final RoomRepository roomRepository;
 	private final PartyRepository partyRepository;
-	private final UserRepository userRepository;
+	private final QuizInfoRepository quizInfoRepository;
 
-	@PostConstruct
-	public void init(){
-		//퀴즈 세팅
-		List<Quiz> list=new ArrayList<>();
-		list.add(new Quiz(1L,"1번","보기1","보기2"));
-		list.add(new Quiz(2L,"2번","보기1","보기2"));
-		list.add(new Quiz(3L,"3번","보기1","보기2"));
-		list.add(new Quiz(4L,"4번","보기1","보기2"));
-		list.add(new Quiz(5L,"5번","보기1","보기2"));
-		list.add(new Quiz(6L,"6번","보기1","보기2"));
-		list.add(new Quiz(7L,"7번","보기1","보기2"));
-		quizInfoRepository.save(new QuizInfo(1L,1,list));
-
-		//방정보 세팅
-		roomRepository.save(new Room(1L,6,7,false,"나호균"));
-
-		//참여자 세팅
-		List<Participant> partyList=new ArrayList<>();
-		partyList.add(new Participant("나호균",0));
-		partyList.add(new Participant("2user",10));
-		partyList.add(new Participant("3user",20));
-		partyList.add(new Participant("4user",30));
-		partyList.add(new Participant("5user",40));
-		partyList.add(new Participant("6user",50));
-		partyRepository.save(new Party(1L,partyList));
-	}
-	
 	@MessageMapping("/quiz/{userId}/create")
-	public CreateRequestDto create(@DestinationVariable Long userId, CreateRequestDto createRequestDto) {
-		return createRequestDto;
+	public void create(@DestinationVariable Long userId, CreateRequestDto createRequestDto) {
+		quizInfoRepository.save(new QuizInfo(userId, 0, quizRepository.findRandomQuiz(createRequestDto.numOfQuiz())));
+		Room room = roomRepository.save(new Room(userId, createRequestDto.numOfPeople(), createRequestDto.numOfPeople(), false,
+				createRequestDto.nickname()));
+		List<Participant> participants = new ArrayList<>();
+		participants.add(new Participant(createRequestDto.nickname(), 0));
+
+		partyRepository.save(new Party(userId, participants));
+		WaitingResponse waitingResponse = new WaitingResponse("waiting", createRequestDto.nickname(),
+			participants.size() - 1, room.getNumOfPeople(), LocalDateTime.now());
+
+		sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+createRequestDto.nickname(), waitingResponse);
 	}
 
 	@MessageMapping("/quiz/{userId}/join")
 	public void join(@DestinationVariable Long userId, JoinRequestDto joinRequestDto) {
+		Room room = roomRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
 
+		Party party = partyRepository.findById(userId)
+			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
+		party.join(new Participant(joinRequestDto.nickname(), 0));
+		partyRepository.save(party);
+
+		WaitingResponse waitingResponse = new WaitingResponse("waiting", room.getNickname(),
+			party.getParticipants().size() - 1, room.getNumOfPeople(), LocalDateTime.now());
+
+		party.getParticipants().forEach(participant -> {
+			sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), waitingResponse);
+		});
 	}
 
 	@MessageMapping("/quiz/{userId}/start")
@@ -89,14 +79,26 @@ public class QuizController {
 
 	}
 
-	@MessageMapping("/quiz/{userId}/hostCancel")
-	public void hostCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto) {
-
-	}
-
-	@MessageMapping("/quiz/{userId}/participantCancel")
+	@MessageMapping("/quiz/{userId}/cancel")
 	public void participantCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto) {
+		Room room = roomRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+		Party party = partyRepository.findById(userId)
+			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
+		if (room.getNickname().equals(cancelRequestDto.nickname())) {
+			roomRepository.delete(room);
+			party.getParticipants().forEach(participant -> {
+				sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), new CancelResponseDto("cancel", "방이 취소되었습니다."));
+			});
+			partyRepository.delete(party);
+			quizInfoRepository.deleteById(userId);
 
+		} else {
+			party.cancel(cancelRequestDto.nickname());
+			partyRepository.save(party);
+			party.getParticipants().forEach(participant -> {
+				sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), new WaitingResponse("waiting", room.getNickname(), party.getParticipants().size()-1, room.getNumOfPeople(), LocalDateTime.now()));
+			});
+		}
 	}
 	@MessageMapping("/quiz/{userId}/submit")
 	public void submit(@DestinationVariable Long userId, SubmitRequestDto submitRequestDto) {
@@ -135,9 +137,6 @@ public class QuizController {
 		sendingOperations.convertAndSend("/sub/quiz/"+userId+"/"+resultRequestDto.nickname(),resultResponseDto);
 
 	}
-
-
-
 
 
 }

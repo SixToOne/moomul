@@ -20,4 +20,12 @@ public class Party {
 	@Id
 	private Long userId;
 	private List<Participant> participants;
+
+	public void join(Participant participant) {
+		participants.add(participant);
+	}
+
+	public void cancel(String nickname) {
+		participants.removeIf(participant -> participant.getNickname().equals(nickname));
+	}
 }

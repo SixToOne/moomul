@@ -1,8 +1,6 @@
 package com.cheerup.moomul.domain.quiz.dto;
 
-import java.time.LocalDateTime;
-
-public record CancelResponseDto(
+public record ErrorResponse(
 	String type,
 	String message
 ) {
