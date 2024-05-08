@@ -19,6 +19,6 @@ public class Room {
 	private Long userId;
 	private int numOfPeople;
 	private int numOfQuiz;
-	private boolean started = false;
+	private boolean started;
 	private String nickname;
 }
