@@ -173,8 +173,10 @@ public class ToMeService {
 		if (user != null) {
 			liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), tomeId);
 		}
+		long voteCnt = voteRepository.countAllByOptionIdIn(
+			post.getOptionList().stream().map(Option::getId).toList());
 
-		return PostResponseDto.from(post, voteId, liked);
+		return PostResponseDto.from(post, voteCnt, voteId, liked);
 	}
 
 	public List<PostResponseDto> getRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
@@ -188,7 +190,11 @@ public class ToMeService {
 				voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
 				liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
 			}
-			return PostResponseDto.from(post, voteId, liked);
+
+			long voteCnt = voteRepository.countAllByOptionIdIn(
+				post.getOptionList().stream().map(Option::getId).toList());
+
+			return PostResponseDto.from(post, voteCnt, voteId, liked);
 		}).toList();
 	}
 
@@ -204,7 +210,10 @@ public class ToMeService {
 				voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
 				liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
 			}
-			return PostResponseDto.from(post, voteId, liked);
+			long voteCnt = voteRepository.countAllByOptionIdIn(
+				post.getOptionList().stream().map(Option::getId).toList());
+
+			return PostResponseDto.from(post, voteCnt, voteId, liked);
 		}).toList();
 	}
 }

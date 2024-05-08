@@ -14,10 +14,11 @@ public record PostResponseDto(
 	String reply,
 	Long likeCnt,
 	Long commentCnt,
+	Long voteCnt,
 	boolean liked,
 	LocalDateTime createdAt
 ) {
-	public static PostResponseDto from(Post p, Long voted, boolean liked) {
+	public static PostResponseDto from(Post p, Long voteCnt,Long voted, boolean liked) {
 		return new PostResponseDto(
 			p.getId(),
 			p.getNickname(),
@@ -27,6 +28,7 @@ public record PostResponseDto(
 			p.getReply(),
 			p.getLikeCnt(),
 			p.getCommentCnt(),
+			voteCnt,
 			liked,
 			p.getCreatedAt()
 		);
