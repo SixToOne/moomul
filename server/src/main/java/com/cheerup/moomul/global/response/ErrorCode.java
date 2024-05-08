@@ -10,6 +10,7 @@ public enum ErrorCode {
 	INTERNAL_SERVER_ERROR(500, "COMMON-001", "서버에서 처리할 수 없는 경우"),
 	NO_USER_ERROR(403, "USER-001", "유저가 없음"),
 	WRONG_PASSWORD(400,"USER-002","비밀번호 틀림"),
+	DUPLICATE_USER_ERROR(400,"USER-004","이미 사용중인 아이디"),
 	MALFORMED_JWT_EXCEPTION(403,"JWT-001" ,"지원되지않는 토큰"),
 	EXPIRED_JWT_EXCEPTION(403,"JWT-002" ,"만료된 토큰"),
 	WRONG_TYPE_JWT_EXCEPTION(403,"JWT-003" ,"잘못된 타입의 토큰"),
