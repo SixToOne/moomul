@@ -1,5 +1,7 @@
 package com.cheerup.moomul.domain.quiz.entity;
 
+import java.util.List;
+
 import org.springframework.data.annotation.Id;
 import org.springframework.data.redis.core.RedisHash;
 
@@ -12,13 +14,11 @@ import lombok.NoArgsConstructor;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-@RedisHash(value = "room")
-public class Room {
+@RedisHash(value = "quiz")
+public class QuizInfo {
 
 	@Id
 	private Long userId;
-	private int numOfPeople;
-	private int numOfQuiz;
-	private boolean started = false;
-	private String nickname;
+	private int curQuizNum = 1;
+	private List<Quiz> quizList;
 }

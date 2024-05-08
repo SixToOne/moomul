@@ -12,5 +12,4 @@ import lombok.NoArgsConstructor;
 public class Participant {
 	String nickname;
 	Integer score;
-	Long roomId;
 }
