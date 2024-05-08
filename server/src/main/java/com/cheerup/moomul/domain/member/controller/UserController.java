@@ -48,7 +48,7 @@ public class UserController {
 	}
 
 	@PostMapping("/id-check")
-	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody IdCheckRequestDto idCheckRequestDto){
+	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody @Valid IdCheckRequestDto idCheckRequestDto){
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.idCheck(idCheckRequestDto.username()));
 	}
