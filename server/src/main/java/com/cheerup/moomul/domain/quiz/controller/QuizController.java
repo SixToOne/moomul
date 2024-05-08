@@ -1,11 +1,18 @@
 package com.cheerup.moomul.domain.quiz.controller;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cheerup.moomul.domain.quiz.dto.CancelRequestDto;
@@ -13,22 +20,26 @@ import com.cheerup.moomul.domain.quiz.dto.CreateRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.JoinRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.ResultRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.SubmitRequestDto;
+import com.cheerup.moomul.domain.quiz.repository.PartyRepository;
+import com.cheerup.moomul.domain.quiz.repository.QuizInfoRepository;
+import com.cheerup.moomul.domain.quiz.repository.RoomRepository;
+import com.cheerup.moomul.domain.quiz.service.QuizService;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 
 @RestController
 @RequiredArgsConstructor
 public class QuizController {
 
 	private final SimpMessageSendingOperations sendingOperations;
-	private final RedisTemplate<Object, Object> redisTemplate;
-
+	private final QuizInfoRepository quizInfoRepository;
+	private final QuizService quizService;
+	private final RoomRepository roomRepository;
+	private final PartyRepository partyRepository;
+	
 	@MessageMapping("/quiz/{userId}/create")
-	public void create(@DestinationVariable Long userId, CreateRequestDto createRequestDto, @Header("Authorization") String authorization) {
+	public CreateRequestDto create(@DestinationVariable Long userId, CreateRequestDto createRequestDto) {
+		return createRequestDto;
 	}
 
 	@MessageMapping("/quiz/{userId}/join")
@@ -37,17 +48,17 @@ public class QuizController {
 	}
 
 	@MessageMapping("/quiz/{userId}/start")
-	public void start(@DestinationVariable Long userId, JoinRequestDto joinRequestDto, @Header("Authorization") String authorization) {
+	public void start(@DestinationVariable Long userId, JoinRequestDto joinRequestDto) {
 
 	}
 
 	@MessageMapping("/quiz/{userId}/hostCancel")
-	public void hostCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto, @Header("Authorization") String authorization) {
+	public void hostCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto) {
 
 	}
 
 	@MessageMapping("/quiz/{userId}/participantCancel")
-	public void participantCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto, @Header("Authorization") String authorization) {
+	public void participantCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto) {
 
 	}
 	@MessageMapping("/quiz/{userId}/submit")
