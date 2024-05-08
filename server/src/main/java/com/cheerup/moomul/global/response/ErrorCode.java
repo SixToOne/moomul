@@ -17,7 +17,9 @@ public enum ErrorCode {
 	UNKNOWN_JWT_EXCEPTION(403,"JWT-004" ,"이상한 값의 토큰"),
 	NO_JWT_TOKEN(403,"JWT-005","토큰이 없음"),
 	NO_AUTHORITY(401,"JWT-006","접근 권한이 없음"),
-	NO_POST_ERROR(404, "POST-001", "게시글이 없음");
+	NO_POST_ERROR(404, "POST-001", "게시글이 없음"),
+	NO_COMMENT_ERROR(404, "COMMENT-001", "존재 하지 않은 댓글 아이디"),
+	NO_OPTION_ERROR(404, "OPTION-001", "투표 옵션이 없을 경우");
 
 	private final int status;
 	private final String code;

@@ -6,4 +6,8 @@ import com.cheerup.moomul.domain.post.entity.PostLike;
 
 public interface PostLikeRepository extends JpaRepository<PostLike, Long> {
 	boolean existsByUserIdAndPostId(Long userId, Long postId);
+
+	long countByPostId(Long postId);
+
+	PostLike findByPostIdAndUserId(Long tomeId, Long userId);
 }
