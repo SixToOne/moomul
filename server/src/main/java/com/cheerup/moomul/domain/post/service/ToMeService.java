@@ -139,23 +139,39 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId, UserDetailDto user) {
+	public PostResponseDto selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId,
+		UserDetailDto user) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 		User loginUser = userRepository.findById(user.Id())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
+		List<Option> optionList = post.getOptionList();
 
-		if (post.getUser().equals(loginUser) && !post.getOptionList().isEmpty()) {
-			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
-
-			if (isVoted != null) {
-				voteRepository.deleteById(isVoted.getId());
-			} else {
-				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+		if (post.getUser().equals(loginUser) && !optionList.isEmpty()) {
+			Vote voted = null;
+			for (Option option : optionList) {
+				Vote vote = voteRepository.findByOptionIdAndUserId(option.getId(), loginUser.getId()).orElse(null);
+				if (vote != null) {
+					voted = vote;
+				}
 			}
-			getToMe(user, userId, tomeId);
+
+			Vote newvote = Vote.builder()
+				.user(loginUser)
+				.option(options)
+				.build();
+
+			if (voted != null) {
+				voteRepository.delete(voted);
+			}
+
+			if (voted == null || voted.getOption() != newvote.getOption()) {
+				voteRepository.save(newvote);
+			}
+
+			return getToMe(user, userId, tomeId);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}

@@ -148,7 +148,7 @@ public class ToMeController {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.selectToMeVote(voted, userId, tomeId, user);
-		return ResponseEntity.ok().build();
+		PostResponseDto dto = toMeService.selectToMeVote(voted, userId, tomeId, user);
+		return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
 	}
 }

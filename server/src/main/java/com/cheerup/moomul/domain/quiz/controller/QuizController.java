@@ -17,6 +17,7 @@ import com.cheerup.moomul.domain.quiz.dto.CreateRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.GradeResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.QuizDto;
 import com.cheerup.moomul.domain.quiz.dto.SubmitResponseDto;
+import com.cheerup.moomul.domain.quiz.dto.StompException;
 import com.cheerup.moomul.domain.quiz.dto.WaitingResponse;
 import com.cheerup.moomul.domain.quiz.dto.JoinRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.QuizResponseDto;
@@ -39,7 +40,6 @@ import com.cheerup.moomul.domain.quiz.service.QuizService;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
 
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 
 @RestController
