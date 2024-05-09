@@ -60,7 +60,7 @@ class FromMeServiceTest {
 	@Test
 	void getFromMeFeedTest() {
 		//1.
-		UserDetailDto userDetailDto = new UserDetailDto(1L,"늘보");
+		UserDetailDto userDetailDto = new UserDetailDto(1L, "늘보");
 		List<Post> postList = new ArrayList<>();
 		postList.add(Post.builder()
 			.id(1L)
@@ -137,5 +137,31 @@ class FromMeServiceTest {
 		BDDMockito.then(userRepository).should(BDDMockito.times(1)).findByUsername("늘보");
 		BDDMockito.then(postRepository).should(BDDMockito.times(1)).save(any(Post.class));
 		BDDMockito.then(optionRepository).should(BDDMockito.times(3)).save(any(Option.class));
+	}
+
+	@DisplayName("FromMe 삭제 테스트")
+	@Test
+	void delete_fromme() {
+		User user = User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.content("소개문구")
+			.build();
+
+		Post post = Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.FROM_ME)
+			.user(user)
+			.build();
+
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
+		given(postRepository.findById(1L, PostType.FROM_ME)).willReturn(Optional.of(post));
+
+		assertThatCode(() -> fromMeService.removeFromMe("아이디", 1L)).doesNotThrowAnyException();
+
+		verify(postRepository).delete(post);
 	}
 }

@@ -74,7 +74,7 @@ class ToMeServiceTest {
 	@Test
 	void createComments() {
 		// Given
-		UserDetailDto userDetailDto = new UserDetailDto(1L,"늘보");
+		UserDetailDto userDetailDto = new UserDetailDto(1L, "늘보");
 		CommentRequestDto commentResponseDto = new CommentRequestDto(1L, "댓글 달았음");
 
 		User user = User.builder()
@@ -160,6 +160,32 @@ class ToMeServiceTest {
 		BDDMockito.then(postRepository).should(BDDMockito.times(1)).save(any(Post.class));
 		BDDMockito.then(optionRepository).should(BDDMockito.times(3)).save(any(Option.class));
 
+	}
+
+	@DisplayName("ToMe 삭제 테스트")
+	@Test
+	void delete_tome() {
+		User user = User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.content("소개문구")
+			.build();
+
+		Post post = Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.TO_ME)
+			.user(user)
+			.build();
+
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
+		given(postRepository.findById(1L, PostType.TO_ME)).willReturn(Optional.of(post));
+
+		assertThatCode(() -> toMeService.removeToMe("아이디", 1L)).doesNotThrowAnyException();
+
+		verify(postRepository).delete(post);
 	}
 
 }
