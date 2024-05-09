@@ -48,8 +48,8 @@ public class FromMeService {
 	private final CommentRepository commentRepository;
 
 	@Transactional
-	public void createFromMe(Long userId, PostRequestDto postRequestDto) {
-		User user = userRepository.findById(userId)
+	public void createFromMe(String username, PostRequestDto postRequestDto) {
+		User user = userRepository.findByUsername(username)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
@@ -81,11 +81,15 @@ public class FromMeService {
 		}
 	}
 
-	public PostResponseDto getFromMe(UserDetailDto user, Long userId, Long frommeId) {
+	public PostResponseDto getFromMe(UserDetailDto user, String username, Long frommeId) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 
-		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
+		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(findUser.getId(),
 			post.getOptionList().stream().map(Option::getId).toList());
 
 		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
@@ -99,8 +103,11 @@ public class FromMeService {
 		return PostResponseDto.from(post, voteCnt, voteId, liked);
 	}
 
-	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findByUserId(userId, PostType.FROM_ME, pageable)
+	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, String username, Pageable pageable) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		return postRepository.findByUserId(findUser.getId(), PostType.FROM_ME, pageable)
 			.stream().map(post -> {
 				List<Option> optionList = post.getOptionList() != null ? post.getOptionList() : Collections.emptyList();
 				Optional<Vote> vote;
@@ -176,8 +183,9 @@ public class FromMeService {
 			if (voted == null || voted.getOption() != newvote.getOption()) {
 				voteRepository.save(newvote);
 			}
-
-			return getFromMe(user, userId, frommeId);
+			//수정해주세요
+			// return getFromMe(user, userId, frommeId);
+			return null;
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
