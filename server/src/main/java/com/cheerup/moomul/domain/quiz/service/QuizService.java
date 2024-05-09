@@ -35,11 +35,11 @@ public class QuizService {
 		return quizRepository.findRandomQuiz(limit);
 	}
 
-	public QuizResponseDto findNextQuiz(Long userId) {
-		QuizInfo quizInfo=quizInfoRepository.findById(userId).get();
+	public QuizResponseDto findNextQuiz(String username) {
+		QuizInfo quizInfo=quizInfoRepository.findById(username).get();
 
 		int curQuizNum=quizInfo.getCurQuizNum()-1;
-		Room curRoom=roomRepository.findById(userId).get();
+		Room curRoom=roomRepository.findById(username).get();
 		int numOfQuiz=curRoom.getNumOfQuiz();
 		Quiz curQuiz=quizInfo.getQuizList().get(curQuizNum);
 		NextQuizDto nextQuiz=new NextQuizDto(curQuiz.getQuestion(), curQuiz.getOption1(), curQuiz.getOption2());
@@ -50,15 +50,15 @@ public class QuizService {
 		return new QuizResponseDto("nextQuiz", nextQuiz, quizInfo.getCurQuizNum(), numOfQuiz, LocalDateTime.now().plusSeconds(30L));
 	}
 
-	public List<Rank> getResult(Long userId,String hostName) {
-		List<Participant> curParty=partyRepository.findById(userId).get().getParticipants();
+	public List<Rank> getResult(String username) {
+		List<Participant> curParty=partyRepository.findById(username).get().getParticipants();
 
 		curParty.sort((o1,o2)->Integer.compare(o2.getScore(),o1.getScore()));
 
 		List<Rank> curRank=new ArrayList<>();
 		int idx=1;
 		for(Participant cur:curParty) {
-			if(cur.getNickname().equals(hostName))
+			if(cur.getNickname().equals(username))
 				continue;
 			curRank.add(new Rank(idx++,cur.getNickname(),cur.getScore()));
 		}

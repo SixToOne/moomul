@@ -55,26 +55,26 @@ public class QuizController {
 	private final UserRepository userRepository;
 	private final SubmitInfoRepository submitInfoRepository;
 
-	@MessageMapping("/quiz/{userId}/create")
-	public void create(@DestinationVariable Long userId, CreateRequestDto createRequestDto) {
-		quizInfoRepository.save(new QuizInfo(userId, 0, quizRepository.findRandomQuiz(createRequestDto.numOfQuiz())));
-		Room room = roomRepository.save(new Room(userId, createRequestDto.numOfPeople(), createRequestDto.numOfPeople(), false,
+	@MessageMapping("/quiz/{username}/create")
+	public void create(@DestinationVariable String username, CreateRequestDto createRequestDto) {
+		quizInfoRepository.save(new QuizInfo(username, 0, quizRepository.findRandomQuiz(createRequestDto.numOfQuiz())));
+		Room room = roomRepository.save(new Room(username, createRequestDto.numOfPeople(), createRequestDto.numOfPeople(), false,
 				createRequestDto.nickname()));
 		List<Participant> participants = new ArrayList<>();
 		participants.add(new Participant(createRequestDto.nickname(), 0));
 
-		partyRepository.save(new Party(userId, participants));
+		partyRepository.save(new Party(username, participants));
 		WaitingResponse waitingResponse = new WaitingResponse("waiting", createRequestDto.nickname(),
 			participants.size() - 1, room.getNumOfPeople(), LocalDateTime.now());
 
-		sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+createRequestDto.nickname(), waitingResponse);
+		sendingOperations.convertAndSend("/sub/quiz/" + username + "/"+createRequestDto.nickname(), waitingResponse);
 	}
 
-	@MessageMapping("/quiz/{userId}/join")
-	public void join(@DestinationVariable Long userId, JoinRequestDto joinRequestDto) {
-		Room room = roomRepository.findById(userId).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+	@MessageMapping("/quiz/{username}/join")
+	public void join(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
+		Room room = roomRepository.findById(username).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
 
-		Party party = partyRepository.findById(userId)
+		Party party = partyRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
 		party.join(new Participant(joinRequestDto.nickname(), 0));
 		partyRepository.save(party);
@@ -83,54 +83,54 @@ public class QuizController {
 			party.getParticipants().size() - 1, room.getNumOfPeople(), LocalDateTime.now());
 
 		party.getParticipants().forEach(participant -> {
-			sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), waitingResponse);
+			sendingOperations.convertAndSend("/sub/quiz/" + username + "/"+participant.getNickname(), waitingResponse);
 		});
 	}
 
-	@MessageMapping("/quiz/{userId}/start")
-	public void start(@DestinationVariable Long userId, JoinRequestDto joinRequestDto) {
+	@MessageMapping("/quiz/{username}/start")
+	public void start(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
 		User hostUser = userRepository.findByUsername(joinRequestDto.nickname())
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
-		if(hostUser.getId().equals(userId))
+		if(hostUser.getUsername().equals(username))
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 
-		QuizResponseDto cur=quizService.findNextQuiz(userId);
+		QuizResponseDto cur=quizService.findNextQuiz(username);
 
-		Party curParty=partyRepository.findById(userId).get();
+		Party curParty=partyRepository.findById(username).get();
 
 		for(Participant toSender:curParty.getParticipants()){
-			sendingOperations.convertAndSend("/sub/quiz/"+userId+"/"+toSender.getNickname(),cur);
+			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),cur);
 		}
 
 	}
 
-	@MessageMapping("/quiz/{userId}/cancel")
-	public void participantCancel(@DestinationVariable Long userId, CancelRequestDto cancelRequestDto) {
-		Room room = roomRepository.findById(userId)
+	@MessageMapping("/quiz/{username}/cancel")
+	public void participantCancel(@DestinationVariable String username, CancelRequestDto cancelRequestDto) {
+		Room room = roomRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
-		Party party = partyRepository.findById(userId)
+		Party party = partyRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
 		if (room.getNickname().equals(cancelRequestDto.nickname())) {
 			roomRepository.delete(room);
 			party.getParticipants().forEach(participant -> {
-				sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), new CancelResponseDto("cancel", "방이 취소되었습니다."));
+				sendingOperations.convertAndSend("/sub/quiz/" + username + "/"+participant.getNickname(), new CancelResponseDto("cancel", "방이 취소되었습니다."));
 			});
 			partyRepository.delete(party);
-			quizInfoRepository.deleteById(userId);
+			quizInfoRepository.deleteById(username);
 
 		} else {
 			party.cancel(cancelRequestDto.nickname());
 			partyRepository.save(party);
 			party.getParticipants().forEach(participant -> {
-				sendingOperations.convertAndSend("/sub/quiz/" + userId + "/"+participant.getNickname(), new WaitingResponse("waiting", room.getNickname(), party.getParticipants().size()-1, room.getNumOfPeople(), LocalDateTime.now()));
+				sendingOperations.convertAndSend("/sub/quiz/" + username + "/"+participant.getNickname(), new WaitingResponse("waiting", room.getNickname(), party.getParticipants().size()-1, room.getNumOfPeople(), LocalDateTime.now()));
 			});
 		}
 	}
-	@MessageMapping("/quiz/{userId}/submit")
-	public void submit(@DestinationVariable Long userId, SubmitRequestDto submitRequestDto) {
+	@MessageMapping("/quiz/{username}/submit")
+	public void submit(@DestinationVariable String username, SubmitRequestDto submitRequestDto) {
 		List<SubmitRequestDto> curSubmitInfo=new ArrayList<>();
-		if(submitInfoRepository.findById(userId).isPresent()){
-			curSubmitInfo=submitInfoRepository.findById(userId).get().getSubmits();
+		if(submitInfoRepository.findById(username).isPresent()){
+			curSubmitInfo=submitInfoRepository.findById(username).get().getSubmits();
 		}
 
 		List<SubmitRequestDto> submitList=new ArrayList<>();
@@ -143,25 +143,26 @@ public class QuizController {
 			submitList.add(cur);
 		}
 
-		submitInfoRepository.save(new SubmitInfo(userId,submitList));
-		Room curRoom=roomRepository.findById(userId).orElseThrow(()->new IllegalArgumentException("방이 존재하지 않습니다."));
+		submitInfoRepository.save(new SubmitInfo(username,submitList));
+		Room curRoom=roomRepository.findById(username)
+			.orElseThrow(()->new IllegalArgumentException("방이 존재하지 않습니다."));
 
 		SubmitResponseDto submitResponseDto=new SubmitResponseDto("submit",submitList.size(),curRoom.getNumOfPeople());
-		sendingOperations.convertAndSend("/sub/quiz/"+userId+"/submit",submitResponseDto);
+		sendingOperations.convertAndSend("/sub/quiz/"+username+"/submit",submitResponseDto);
 
 	}
 
-	@MessageMapping("/quiz/{userId}/grade")
-	public void grade(@DestinationVariable Long userId) {
-		Room room = roomRepository.findById(userId)
+	@MessageMapping("/quiz/{username}/grade")
+	public void grade(@DestinationVariable String username) {
+		Room room = roomRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
-		Party curParty = partyRepository.findById(userId)
+		Party curParty = partyRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
 
 		//제출목록 불러오기
-		SubmitInfo submitInfo=submitInfoRepository.findById(userId).get();
+		SubmitInfo submitInfo=submitInfoRepository.findById(username).get();
 		//현재 퀴즈 정보 불러오기
-		QuizInfo quizInfo=quizInfoRepository.findById(userId).get();
+		QuizInfo quizInfo=quizInfoRepository.findById(username).get();
 		List<Quiz> quizList=quizInfo.getQuizList();
 		int curQuizNum=quizInfo.getCurQuizNum();
 		Quiz curQuiz=quizList.get(curQuizNum-1);
@@ -192,10 +193,10 @@ public class QuizController {
 			newParticipants.add(new Participant(curName,curScore));
 		}
 		partyRepository.delete(curParty);
-		partyRepository.save(new Party(userId,newParticipants));
+		partyRepository.save(new Party(username,newParticipants));
 
 		//rank 가져오기
-		List<Rank> scoreResult=quizService.getResult(userId,room.getNickname());
+		List<Rank> scoreResult=quizService.getResult(username);
 
 
 
@@ -228,31 +229,31 @@ public class QuizController {
 			);
 
 
-			sendingOperations.convertAndSend("/sub/quiz/"+userId+"/"+toSender.getNickname(),gradeResponseDto);
+			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),gradeResponseDto);
 		}
 	}
 
-	@MessageMapping("/quiz/{userId}/next")
-	public void next(@DestinationVariable Long userId) {
+	@MessageMapping("/quiz/{username}/next")
+	public void next(@DestinationVariable String username) {
 
-		QuizResponseDto cur=quizService.findNextQuiz(userId);
+		QuizResponseDto cur=quizService.findNextQuiz(username);
 
-		Party curParty=partyRepository.findById(userId).get();
+		Party curParty=partyRepository.findById(username).get();
 
 		for(Participant toSender:curParty.getParticipants()){
-			sendingOperations.convertAndSend("/sub/quiz/"+userId+"/"+toSender.getNickname(),cur);
+			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),cur);
 		}
 
 	}
 
-	@MessageMapping("/quiz/{userId}/result")
-	public void result(@DestinationVariable Long userId, ResultRequestDto resultRequestDto) {
-		Room room = roomRepository.findById(userId)
+	@MessageMapping("/quiz/{username}/result")
+	public void result(@DestinationVariable String username, ResultRequestDto resultRequestDto) {
+		Room room = roomRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
-		Party curParty = partyRepository.findById(userId)
+		Party curParty = partyRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
 
-		List<Rank> result=quizService.getResult(userId,room.getNickname());
+		List<Rank> result=quizService.getResult(username);
 		Rank myRank=null;
 		for(Rank cur: result){
 			if(cur.getNickname().equals(resultRequestDto.nickname())){
@@ -261,7 +262,7 @@ public class QuizController {
 		}
 		ResultResponseDto resultResponseDto=new ResultResponseDto("result",myRank,result);
 
-		sendingOperations.convertAndSend("/sub/quiz/"+userId+"/"+resultRequestDto.nickname(),resultResponseDto);
+		sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+resultRequestDto.nickname(),resultResponseDto);
 
 	}
 
