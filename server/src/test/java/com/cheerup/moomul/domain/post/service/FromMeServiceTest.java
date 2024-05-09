@@ -60,7 +60,7 @@ class FromMeServiceTest {
 	@Test
 	void getFromMeFeedTest() {
 		//1.
-		UserDetailDto userDetailDto = new UserDetailDto(1L);
+		UserDetailDto userDetailDto = new UserDetailDto(1L,"늘보");
 		List<Post> postList = new ArrayList<>();
 		postList.add(Post.builder()
 			.id(1L)

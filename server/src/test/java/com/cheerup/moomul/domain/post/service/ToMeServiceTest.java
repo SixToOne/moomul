@@ -74,7 +74,7 @@ class ToMeServiceTest {
 	@Test
 	void createComments() {
 		// Given
-		UserDetailDto userDetailDto = new UserDetailDto(1L);
+		UserDetailDto userDetailDto = new UserDetailDto(1L,"늘보");
 		CommentRequestDto commentResponseDto = new CommentRequestDto(1L, "댓글 달았음");
 
 		User user = User.builder()
