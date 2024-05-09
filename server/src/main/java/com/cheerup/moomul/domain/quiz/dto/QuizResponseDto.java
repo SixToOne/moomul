@@ -6,7 +6,7 @@ import com.cheerup.moomul.domain.quiz.entity.Quiz;
 
 public record QuizResponseDto(
 	String type,
-	QuizDto quiz,
+	NextQuizDto quiz,
 	int quizNum,
 	int numOfQuiz,
 
