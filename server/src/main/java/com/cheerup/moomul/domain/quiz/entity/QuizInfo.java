@@ -19,6 +19,6 @@ public class QuizInfo {
 
 	@Id
 	private String userId;
-	private int curQuizNum = 1;
+	private int curQuizNum;
 	private List<Quiz> quizList;
 }

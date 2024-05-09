@@ -91,7 +91,7 @@ public class QuizController {
 	public void start(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
 		User hostUser = userRepository.findByUsername(joinRequestDto.nickname())
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
-		if(hostUser.getUsername().equals(username))
+		if(!hostUser.getUsername().equals(username))
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 
 		QuizResponseDto cur=quizService.findNextQuiz(username);
@@ -148,7 +148,10 @@ public class QuizController {
 			.orElseThrow(()->new IllegalArgumentException("방이 존재하지 않습니다."));
 
 		SubmitResponseDto submitResponseDto=new SubmitResponseDto("submit",submitList.size(),curRoom.getNumOfPeople());
-		sendingOperations.convertAndSend("/sub/quiz/"+username+"/submit",submitResponseDto);
+
+		partyRepository.findById(username).get().getParticipants().forEach(participant -> {
+			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+participant.getNickname(),submitResponseDto);
+		});
 
 	}
 
@@ -172,12 +175,15 @@ public class QuizController {
 		int option2Count=0;
 		String hostAnswer=null;
 		for(SubmitRequestDto submitRequestDto:submitInfo.getSubmits()){
+			if(submitRequestDto.nickname().equals(room.getNickname())) {
+				hostAnswer = submitRequestDto.answer();
+				continue;
+			}
 			if(submitRequestDto.answer().equals(curQuiz.getOption1()))
 				option1Count++;
 			if(submitRequestDto.answer().equals(curQuiz.getOption2()))
 				option2Count++;
-			if(submitRequestDto.nickname().equals(room.getNickname()))
-				hostAnswer = submitRequestDto.answer();
+
 		}
 
 		//점수 갱신 후 재저장
@@ -231,6 +237,7 @@ public class QuizController {
 
 			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),gradeResponseDto);
 		}
+		submitInfoRepository.delete(submitInfo);
 	}
 
 	@MessageMapping("/quiz/{username}/next")
