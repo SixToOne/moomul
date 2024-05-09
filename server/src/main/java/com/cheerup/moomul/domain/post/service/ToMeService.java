@@ -140,21 +140,18 @@ public class ToMeService {
 
 	@Transactional
 	public PostResponseDto selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId,
-		UserDetailDto user) { //userId 채널주인
-		Post post = postRepository.findById(tomeId, PostType.TO_ME) //현재 게시글
+		UserDetailDto user) {
+		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(user.Id()) //현재 로그인 유저
+		User loginUser = userRepository.findById(user.Id())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
-		Option options = optionRepository.findById(optionId.voted()) // 투표를 원하는 옵션
+		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
-
 		List<Option> optionList = post.getOptionList();
-		log.info("optionList: " + optionList);
 
 		if (post.getUser().equals(loginUser) && !optionList.isEmpty()) {
 			Vote voted = null;
-			for (Option option : optionList) { // 게시글의 옵션들
-				// 게시글의 옵션에 Vote가 있는지 판단
+			for (Option option : optionList) {
 				Vote vote = voteRepository.findByOptionIdAndUserId(option.getId(), loginUser.getId()).orElse(null);
 				if (vote != null) {
 					voted = vote;
@@ -167,7 +164,7 @@ public class ToMeService {
 				.build();
 
 			if (voted != null) {
-				deleteVote(voted);
+				voteRepository.delete(voted);
 			}
 
 			if (voted == null || voted.getOption() != newvote.getOption()) {
@@ -178,12 +175,6 @@ public class ToMeService {
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
-	}
-
-	@Transactional
-	public void deleteVote(Vote voted) {
-		log.info("Deleting vote: " + voted);
-		voteRepository.delete(voted);
 	}
 
 	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {

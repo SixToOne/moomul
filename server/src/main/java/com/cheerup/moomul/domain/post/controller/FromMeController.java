@@ -93,8 +93,8 @@ public class FromMeController {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		fromMeService.selectFromMeVote(voted, userId, frommeId, user);
-		return ResponseEntity.ok().build();
+		PostResponseDto dto = fromMeService.selectFromMeVote(voted, userId, frommeId, user);
+		return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
 	}
 
 	@GetMapping("/{frommeId}/comments")
