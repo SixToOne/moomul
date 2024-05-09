@@ -39,17 +39,17 @@ public class FromMeController {
 	private final FromMeService fromMeService;
 
 	@DeleteMapping("/{frommeId}")
-	public ResponseEntity<Void> deleteFromMe(@AuthenticationPrincipal UserDetailDto user, @PathVariable Long userId,
+	public ResponseEntity<Void> deleteFromMe(@AuthenticationPrincipal UserDetailDto user, @RequestParam String username,
 		@PathVariable Long frommeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		fromMeService.removeFromMe(userId, frommeId);
+		fromMeService.removeFromMe(username, frommeId);
 		return ResponseEntity.ok().build();
 	}
 
@@ -75,26 +75,26 @@ public class FromMeController {
 
 	@PostMapping("/{frommeId}/likes")
 	public ResponseEntity<PostLikeResponseDto> postFromMeLikes(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long frommeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostLikeResponseDto likeCnt = fromMeService.likeFromMe(user, userId, frommeId);
+		PostLikeResponseDto likeCnt = fromMeService.likeFromMe(user, username, frommeId);
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
 	@PatchMapping("/{frommeId}/votes")
 	public ResponseEntity<PostResponseDto> voteFromMe(@AuthenticationPrincipal UserDetailDto user,
 		@RequestBody VoteRequestDto voted,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long frommeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostResponseDto dto = fromMeService.selectFromMeVote(voted, userId, frommeId, user);
+		PostResponseDto dto = fromMeService.selectFromMeVote(voted, username, frommeId, user);
 		return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
 	}
 

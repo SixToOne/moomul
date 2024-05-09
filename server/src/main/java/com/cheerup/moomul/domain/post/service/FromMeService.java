@@ -68,10 +68,10 @@ public class FromMeService {
 	}
 
 	@Transactional
-	public void removeFromMe(Long userId, Long frommeId) {
+	public void removeFromMe(String username, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId)
+		User loginUser = userRepository.findByUsername(username)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
@@ -84,7 +84,6 @@ public class FromMeService {
 	public PostResponseDto getFromMe(UserDetailDto user, String username, Long frommeId) {
 		User findUser = userRepository.findByUsername(username)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
-
 
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
@@ -129,10 +128,10 @@ public class FromMeService {
 	}
 
 	@Transactional
-	public PostLikeResponseDto likeFromMe(UserDetailDto user, Long userId, Long frommeId) {
+	public PostLikeResponseDto likeFromMe(UserDetailDto user, String username, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		if (!post.getUser().getId().equals(userId)) {
+		if (!post.getUser().getUsername().equals(username)) {
 			throw new BaseException(ErrorCode.NO_POST_ERROR);
 		}
 
@@ -153,7 +152,8 @@ public class FromMeService {
 	}
 
 	@Transactional
-	public PostResponseDto selectFromMeVote(VoteRequestDto optionId, Long userId, Long frommeId, UserDetailDto user) {
+	public PostResponseDto selectFromMeVote(VoteRequestDto optionId, String username, Long frommeId,
+		UserDetailDto user) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 		User loginUser = userRepository.findById(user.Id())
@@ -183,9 +183,7 @@ public class FromMeService {
 			if (voted == null || voted.getOption() != newvote.getOption()) {
 				voteRepository.save(newvote);
 			}
-			//수정해주세요
-			// return getFromMe(user, userId, frommeId);
-			return null;
+			return getFromMe(user, username, frommeId);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}

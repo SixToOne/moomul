@@ -87,63 +87,63 @@ public class ToMeController {
 	}
 
 	@DeleteMapping("/{tomeId}")
-	public ResponseEntity<Void> deleteToMe(@AuthenticationPrincipal UserDetailDto user, @PathVariable Long userId,
+	public ResponseEntity<Void> deleteToMe(@AuthenticationPrincipal UserDetailDto user, @RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.removeToMe(userId, tomeId);
+		toMeService.removeToMe(username, tomeId);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{tomeId}/replies")
 	public ResponseEntity<Void> postReplies(@AuthenticationPrincipal UserDetailDto user,
 		@RequestBody ReplyRequestDto reply,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId, Pageable pageable) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.createReplies(reply, userId, tomeId, user, pageable);
+		toMeService.createReplies(reply, username, tomeId, user, pageable);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{tomeId}/likes")
 	public ResponseEntity<PostLikeResponseDto> postToMeLikes(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostLikeResponseDto likeCnt = toMeService.likeToMe(user, userId, tomeId);
+		PostLikeResponseDto likeCnt = toMeService.likeToMe(user, username, tomeId);
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
 	@PatchMapping("/{tomeId}/votes")
 	public ResponseEntity<PostResponseDto> voteToMe(@AuthenticationPrincipal UserDetailDto user,
 		@RequestBody VoteRequestDto voted,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		PostResponseDto dto = toMeService.selectToMeVote(voted, userId, tomeId, user);
+		PostResponseDto dto = toMeService.selectToMeVote(voted, username, tomeId, user);
 		return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
 	}
 }

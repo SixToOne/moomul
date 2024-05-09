@@ -75,7 +75,8 @@ public class ToMeService {
 
 	@Transactional
 	public void createToMe(String username, PostRequestDto postRequestDto) {
-		User user = userRepository.findByUsername(username).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User user = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
 			.content(postRequestDto.content())
@@ -90,10 +91,11 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void removeToMe(Long userId, Long tomeId) {
+	public void removeToMe(String username, Long tomeId) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User loginUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
 			postRepository.delete(post);
@@ -103,29 +105,31 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void createReplies(ReplyRequestDto reply, Long userId, Long tomeId, UserDetailDto user, Pageable pageable) {
+	public void createReplies(ReplyRequestDto reply, String username, Long tomeId, UserDetailDto user,
+		Pageable pageable) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		User loginUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
 			post.addReply(reply.reply());
-			// getNotRepliedToMe(user, userId, pageable);
-			// getRepliedToMe(user, userId, pageable);
+			getNotRepliedToMe(user, username, pageable);
+			getRepliedToMe(user, username, pageable);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 	}
 
 	@Transactional
-	public PostLikeResponseDto likeToMe(UserDetailDto user, Long userId, Long tomeId) {
+	public PostLikeResponseDto likeToMe(UserDetailDto user, String username, Long tomeId) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		if (!post.getUser().getId().equals(userId)) {
+		if (!post.getUser().getUsername().equals(username)) {
 			throw new BaseException(ErrorCode.NO_POST_ERROR);
 		}
 
-		User loginUser = userRepository.findById(user.Id())
+		User loginUser = userRepository.findByUsername(user.username())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_AUTHORITY));
 		PostLike isLike = postLikeRepository.findByPostIdAndUserId(tomeId, loginUser.getId());
 
@@ -139,11 +143,11 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public PostResponseDto selectToMeVote(VoteRequestDto optionId, Long userId, Long tomeId,
+	public PostResponseDto selectToMeVote(VoteRequestDto optionId, String username, Long tomeId,
 		UserDetailDto user) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(user.Id())
+		User loginUser = userRepository.findByUsername(user.username())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
@@ -170,9 +174,7 @@ public class ToMeService {
 			if (voted == null || voted.getOption() != newvote.getOption()) {
 				voteRepository.save(newvote);
 			}
-			//고쳐주세요
-			// return getToMe(user, userId, tomeId);
-			return null;
+			return getToMe(user, username, tomeId);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
