@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class Party {
 
 	@Id
-	private Long userId;
+	private String userId;
 	private List<Participant> participants;
 
 	public void join(Participant participant) {

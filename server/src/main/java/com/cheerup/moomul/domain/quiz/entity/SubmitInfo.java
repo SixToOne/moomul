@@ -20,7 +20,7 @@ import lombok.NoArgsConstructor;
 public class SubmitInfo {
 
 	@Id
-	private Long userId;
+	private String userId;
 	private List<SubmitRequestDto> submits;
 
 }

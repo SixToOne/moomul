@@ -18,7 +18,7 @@ import lombok.NoArgsConstructor;
 public class QuizInfo {
 
 	@Id
-	private Long userId;
+	private String userId;
 	private int curQuizNum = 1;
 	private List<Quiz> quizList;
 }

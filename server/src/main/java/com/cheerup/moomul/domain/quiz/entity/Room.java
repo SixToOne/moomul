@@ -16,7 +16,7 @@ import lombok.NoArgsConstructor;
 public class Room {
 
 	@Id
-	private Long userId;
+	private String userId;
 	private int numOfPeople;
 	private int numOfQuiz;
 	private boolean started;

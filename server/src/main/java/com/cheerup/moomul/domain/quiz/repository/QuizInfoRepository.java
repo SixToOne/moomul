@@ -7,6 +7,6 @@ import org.springframework.data.repository.CrudRepository;
 import com.cheerup.moomul.domain.quiz.entity.Quiz;
 import com.cheerup.moomul.domain.quiz.entity.QuizInfo;
 
-public interface QuizInfoRepository extends CrudRepository<QuizInfo, Long> {
+public interface QuizInfoRepository extends CrudRepository<QuizInfo, String> {
 
 }
