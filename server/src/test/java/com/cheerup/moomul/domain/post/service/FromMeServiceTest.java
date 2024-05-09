@@ -89,12 +89,13 @@ class FromMeServiceTest {
 				.build(), 1L, 1L, true));
 
 		//given
+		given(userRepository.findByUsername("늘보")).willReturn(Optional.of(User.builder().id(1L).build()));
 		given(postRepository.findByUserId(1L, PostType.FROM_ME, pageImpl.getPageable())).willReturn(postList);
 		given(voteRepository.findByUserIdAndOptionIdIn(1L, List.of(1L))).willReturn(Optional.ofNullable(vote));
 		given(postLikeRepository.existsByUserIdAndPostId(1L, 1L)).willReturn(true);
 		//when
 		assertThatCode(
-			() -> fromMeService.getFromMeFeed(userDetailDto, 1L, pageImpl.getPageable())).doesNotThrowAnyException();
+			() -> fromMeService.getFromMeFeed(userDetailDto, "늘보", pageImpl.getPageable())).doesNotThrowAnyException();
 		//then
 
 		BDDMockito.then(postRepository)
@@ -124,16 +125,16 @@ class FromMeServiceTest {
 			.id(1L)
 			.build();
 
-		given(userRepository.findById(1L)).willReturn(Optional.of(user));
+		given(userRepository.findByUsername("늘보")).willReturn(Optional.of(user));
 		given(postRepository.save(any(Post.class))).willReturn(saved);
 		given(optionRepository.save(any(Option.class))).willReturn(option);
 
 		//when
 		assertThatCode(
-			() -> fromMeService.createFromMe(1L, postRequestDto)).doesNotThrowAnyException();
+			() -> fromMeService.createFromMe("늘보", postRequestDto)).doesNotThrowAnyException();
 
 		//then
-		BDDMockito.then(userRepository).should(BDDMockito.times(1)).findById(1L);
+		BDDMockito.then(userRepository).should(BDDMockito.times(1)).findByUsername("늘보");
 		BDDMockito.then(postRepository).should(BDDMockito.times(1)).save(any(Post.class));
 		BDDMockito.then(optionRepository).should(BDDMockito.times(3)).save(any(Option.class));
 	}

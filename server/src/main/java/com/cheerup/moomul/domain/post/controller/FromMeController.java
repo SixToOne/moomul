@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(("/users/{userId}/fromme"))
+@RequestMapping(("/fromme"))
 public class FromMeController {
 	private final FromMeService fromMeService;
 
@@ -53,23 +54,23 @@ public class FromMeController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Void> postFromMe(@PathVariable Long userId,
+	public ResponseEntity<Void> postFromMe(@RequestParam String username,
 		@RequestBody PostRequestDto postRequestDto) {
-		fromMeService.createFromMe(userId, postRequestDto);
+		fromMeService.createFromMe(username, postRequestDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping
 	public ResponseEntity<List<PostResponseDto>> getFromMeFeed(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId, Pageable pageable) {
-		return ResponseEntity.ok(fromMeService.getFromMeFeed(user, userId, pageable));
+		@RequestParam String username, Pageable pageable) {
+		return ResponseEntity.ok(fromMeService.getFromMeFeed(user, username, pageable));
 	}
 
 	@GetMapping("/{frommeId}")
 	public ResponseEntity<PostResponseDto> getFromMe(@AuthenticationPrincipal UserDetailDto user,
 		@PathVariable Long frommeId,
-		@PathVariable Long userId) {
-		return ResponseEntity.ok(fromMeService.getFromMe(user, userId, frommeId));
+		@RequestParam String username) {
+		return ResponseEntity.ok(fromMeService.getFromMe(user, username, frommeId));
 	}
 
 	@PostMapping("/{frommeId}/likes")
