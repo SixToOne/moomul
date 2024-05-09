@@ -107,15 +107,10 @@ public class FromMeController {
 
 	@PostMapping("{frommeId}/comments")
 	ResponseEntity<List<CommentResponseDto>> postComments(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId,
 		@PathVariable Long frommeId, @RequestBody CommentRequestDto comment) {
 
 		if (user == null) {
-			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
-		}
-
-		if (!user.Id().equals(userId)) {
-			throw new BaseException(ErrorCode.NO_AUTHORITY);
+			throw new BaseException(ErrorCode.NO_LOGIN);
 		}
 
 		fromMeService.createComments(user, frommeId, comment); //현재 로그인 user, 게시글 userId, 게시글 Id
