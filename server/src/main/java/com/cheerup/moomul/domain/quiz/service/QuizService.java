@@ -38,7 +38,7 @@ public class QuizService {
 	public QuizResponseDto findNextQuiz(String username) {
 		QuizInfo quizInfo=quizInfoRepository.findById(username).get();
 
-		int curQuizNum=quizInfo.getCurQuizNum()-1;
+		int curQuizNum=quizInfo.getCurQuizNum();
 		Room curRoom=roomRepository.findById(username).get();
 		int numOfQuiz=curRoom.getNumOfQuiz();
 		Quiz curQuiz=quizInfo.getQuizList().get(curQuizNum);
@@ -47,7 +47,7 @@ public class QuizService {
 		quizInfoRepository.delete(quizInfo);
 		quizInfoRepository.save(new QuizInfo(quizInfo.getUserId(), quizInfo.getCurQuizNum()+1,quizInfo.getQuizList()));
 
-		return new QuizResponseDto("nextQuiz", nextQuiz, quizInfo.getCurQuizNum(), numOfQuiz, LocalDateTime.now().plusSeconds(30L));
+		return new QuizResponseDto("nextQuiz", nextQuiz, quizInfo.getCurQuizNum()+1, numOfQuiz, LocalDateTime.now().plusSeconds(30L));
 	}
 
 	public List<Rank> getResult(String username) {
