@@ -96,7 +96,7 @@ public class FromMeService {
 		long voteCnt = voteRepository.countAllByOptionIdIn(
 			post.getOptionList().stream().map(Option::getId).toList());
 
-		return PostResponseDto.from(post, voteCnt,voteId, liked);
+		return PostResponseDto.from(post, voteCnt, voteId, liked);
 	}
 
 	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, Long userId, Pageable pageable) {
@@ -146,25 +146,40 @@ public class FromMeService {
 	}
 
 	@Transactional
-	public void selectFromMeVote(VoteRequestDto optionId, Long userId, Long frommeId, UserDetailDto user) {
+	public PostResponseDto selectFromMeVote(VoteRequestDto optionId, Long userId, Long frommeId, UserDetailDto user) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 		User loginUser = userRepository.findById(user.Id())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
+		List<Option> optionList = post.getOptionList();
 
-		if (!post.getOptionList().isEmpty()) {
-			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
-
-			if (isVoted != null) {
-				voteRepository.deleteById(isVoted.getId());
-			} else {
-				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+		if (!optionList.isEmpty()) {
+			Vote voted = null;
+			for (Option option : optionList) {
+				Vote vote = voteRepository.findByOptionIdAndUserId(option.getId(), loginUser.getId()).orElse(null);
+				if (vote != null) {
+					voted = vote;
+				}
 			}
-			getFromMe(user, userId, frommeId);
+
+			Vote newvote = Vote.builder()
+				.user(loginUser)
+				.option(options)
+				.build();
+
+			if (voted != null) {
+				voteRepository.delete(voted);
+			}
+
+			if (voted == null || voted.getOption() != newvote.getOption()) {
+				voteRepository.save(newvote);
+			}
+
+			return getFromMe(user, userId, frommeId);
 		} else {
-			throw new BaseException(ErrorCode.NO_OPTION_ERROR);
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 	}
 
