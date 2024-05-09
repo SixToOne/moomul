@@ -47,10 +47,10 @@ public class QuizService {
 		quizInfoRepository.delete(quizInfo);
 		quizInfoRepository.save(new QuizInfo(quizInfo.getUserId(), quizInfo.getCurQuizNum()+1,quizInfo.getQuizList()));
 
-		return new QuizResponseDto("nextQuiz", nextQuiz, curQuizNum, numOfQuiz, LocalDateTime.now().plusSeconds(30L));
+		return new QuizResponseDto("nextQuiz", nextQuiz, quizInfo.getCurQuizNum(), numOfQuiz, LocalDateTime.now().plusSeconds(30L));
 	}
 
-	public List<Rank> getResult(Long userId, String nickname) {
+	public List<Rank> getResult(Long userId,String hostName) {
 		List<Participant> curParty=partyRepository.findById(userId).get().getParticipants();
 
 		curParty.sort((o1,o2)->Integer.compare(o2.getScore(),o1.getScore()));
@@ -58,6 +58,8 @@ public class QuizService {
 		List<Rank> curRank=new ArrayList<>();
 		int idx=1;
 		for(Participant cur:curParty) {
+			if(cur.getNickname().equals(hostName))
+				continue;
 			curRank.add(new Rank(idx++,cur.getNickname(),cur.getScore()));
 		}
 
