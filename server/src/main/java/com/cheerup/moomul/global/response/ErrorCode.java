@@ -20,7 +20,9 @@ public enum ErrorCode {
 	NO_LOGIN(401, "JWT-006", "로그인이 되어있지 않음"),
 	NO_POST_ERROR(404, "POST-001", "게시글이 없음"),
 	NO_COMMENT_ERROR(404, "COMMENT-001", "존재 하지 않은 댓글 아이디"),
-	NO_OPTION_ERROR(404, "OPTION-001", "투표 옵션이 없을 경우");
+	NO_OPTION_ERROR(404, "OPTION-001", "투표 옵션이 없을 경우"),
+	NO_QUIZ_ERROR(404, "QUIZ-001", "퀴즈가 개설되지 않은 경우"),
+	FULL_ROOM(404, "QUIZ-002", "퀴즈 방이 꽉 찬 경우");
 
 	private final int status;
 	private final String code;
