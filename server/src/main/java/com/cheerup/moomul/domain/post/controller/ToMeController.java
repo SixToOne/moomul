@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(("/users/{userId}/tome"))
+@RequestMapping(("/tome"))
 @Slf4j
 public class ToMeController {
 	private final ToMeService toMeService;
@@ -66,29 +67,28 @@ public class ToMeController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Void> postToMe(@PathVariable Long userId,
-		@RequestBody PostRequestDto postRequestDto) {
-		toMeService.createToMe(userId, postRequestDto);
+	public ResponseEntity<Void> postToMe(@RequestParam String username, @RequestBody PostRequestDto postRequestDto) {
+		toMeService.createToMe(username, postRequestDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping("/replied")
 	public ResponseEntity<List<PostResponseDto>> getRepliedToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId, Pageable pageable) {
-		return ResponseEntity.ok(toMeService.getRepliedToMe(user, userId, pageable));
+		@RequestParam String username, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getRepliedToMe(user, username, pageable));
 	}
 
 	@GetMapping("/not-replied")
 	public ResponseEntity<List<PostResponseDto>> getNotRepliedToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId, Pageable pageable) {
-		return ResponseEntity.ok(toMeService.getNotRepliedToMe(user, userId, pageable));
+		@RequestParam String username, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getNotRepliedToMe(user, username, pageable));
 	}
 
-	@GetMapping("/{frommeId}")
+	@GetMapping("/{tomeId}")
 	public ResponseEntity<PostResponseDto> getToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long frommeId,
-		@PathVariable Long userId) {
-		return ResponseEntity.ok(toMeService.getToMe(user, userId, frommeId));
+		@PathVariable Long tomeId,
+		@RequestParam String username) {
+		return ResponseEntity.ok(toMeService.getToMe(user, username, tomeId));
 	}
 
 	@DeleteMapping("/{tomeId}")

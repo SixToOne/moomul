@@ -74,8 +74,8 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public void createToMe(Long userId, PostRequestDto postRequestDto) {
-		User user = userRepository.findById(userId).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+	public void createToMe(String username, PostRequestDto postRequestDto) {
+		User user = userRepository.findByUsername(username).orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
 			.content(postRequestDto.content())
@@ -110,8 +110,8 @@ public class ToMeService {
 
 		if (post.getUser().equals(loginUser)) {
 			post.addReply(reply.reply());
-			getNotRepliedToMe(user, userId, pageable);
-			getRepliedToMe(user, userId, pageable);
+			// getNotRepliedToMe(user, userId, pageable);
+			// getRepliedToMe(user, userId, pageable);
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
@@ -170,18 +170,22 @@ public class ToMeService {
 			if (voted == null || voted.getOption() != newvote.getOption()) {
 				voteRepository.save(newvote);
 			}
-
-			return getToMe(user, userId, tomeId);
+			//고쳐주세요
+			// return getToMe(user, userId, tomeId);
+			return null;
 		} else {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 	}
 
-	public PostResponseDto getToMe(UserDetailDto user, Long userId, Long tomeId) {
+	public PostResponseDto getToMe(UserDetailDto user, String username, Long tomeId) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 
-		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
+		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(findUser.getId(),
 			post.getOptionList().stream().map(Option::getId).toList());
 
 		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
@@ -195,8 +199,10 @@ public class ToMeService {
 		return PostResponseDto.from(post, voteCnt, voteId, liked);
 	}
 
-	public List<PostResponseDto> getRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findRepliedPost(userId, PostType.TO_ME, pageable).stream().map(post -> {
+	public List<PostResponseDto> getRepliedToMe(UserDetailDto user, String username, Pageable pageable) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		return postRepository.findRepliedPost(findUser.getId(), PostType.TO_ME, pageable).stream().map(post -> {
 			Optional<Vote> vote;
 			Long voteId = null;
 			boolean liked = false;
@@ -214,8 +220,10 @@ public class ToMeService {
 		}).toList();
 	}
 
-	public List<PostResponseDto> getNotRepliedToMe(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findNotRepliedPost(userId, PostType.TO_ME, pageable).stream().map(post -> {
+	public List<PostResponseDto> getNotRepliedToMe(UserDetailDto user, String username, Pageable pageable) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+		return postRepository.findNotRepliedPost(findUser.getId(), PostType.TO_ME, pageable).stream().map(post -> {
 			System.out.println(post.getId());
 			Optional<Vote> vote;
 			Long voteId = null;
