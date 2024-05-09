@@ -17,7 +17,6 @@ import com.cheerup.moomul.domain.quiz.dto.CreateRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.GradeResponseDto;
 import com.cheerup.moomul.domain.quiz.dto.QuizDto;
 import com.cheerup.moomul.domain.quiz.dto.SubmitResponseDto;
-import com.cheerup.moomul.domain.quiz.dto.StompException;
 import com.cheerup.moomul.domain.quiz.dto.WaitingResponse;
 import com.cheerup.moomul.domain.quiz.dto.JoinRequestDto;
 import com.cheerup.moomul.domain.quiz.dto.QuizResponseDto;
@@ -57,6 +56,13 @@ public class QuizController {
 
 	@MessageMapping("/quiz/{username}/create")
 	public void create(@DestinationVariable String username, CreateRequestDto createRequestDto) {
+		if(username.equals(createRequestDto.nickname()))
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+
+		userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+
 		quizInfoRepository.save(new QuizInfo(username, 0, quizRepository.findRandomQuiz(createRequestDto.numOfQuiz())));
 		Room room = roomRepository.save(new Room(username, createRequestDto.numOfPeople(), createRequestDto.numOfPeople(), false,
 				createRequestDto.nickname()));
@@ -72,10 +78,12 @@ public class QuizController {
 
 	@MessageMapping("/quiz/{username}/join")
 	public void join(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
-		Room room = roomRepository.findById(username).orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+		Room room = roomRepository.findById(username).orElseThrow(() -> new BaseException(ErrorCode.NO_QUIZ_ERROR));
 
 		Party party = partyRepository.findById(username)
-			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_QUIZ_ERROR));
+		if (party.getParticipants().size()-1 >= room.getNumOfPeople())
+			throw new BaseException(ErrorCode.FULL_ROOM);
 		party.join(new Participant(joinRequestDto.nickname(), 0));
 		partyRepository.save(party);
 
@@ -107,9 +115,9 @@ public class QuizController {
 	@MessageMapping("/quiz/{username}/cancel")
 	public void participantCancel(@DestinationVariable String username, CancelRequestDto cancelRequestDto) {
 		Room room = roomRepository.findById(username)
-			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_QUIZ_ERROR));
 		Party party = partyRepository.findById(username)
-			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_QUIZ_ERROR));
 		if (room.getNickname().equals(cancelRequestDto.nickname())) {
 			roomRepository.delete(room);
 			party.getParticipants().forEach(participant -> {
@@ -117,8 +125,9 @@ public class QuizController {
 			});
 			partyRepository.delete(party);
 			quizInfoRepository.deleteById(username);
-
 		} else {
+			if (party.getParticipants().stream().noneMatch(participant -> participant.getNickname().equals(cancelRequestDto.nickname())))
+				throw new BaseException(ErrorCode.NO_USER_ERROR);
 			party.cancel(cancelRequestDto.nickname());
 			partyRepository.save(party);
 			party.getParticipants().forEach(participant -> {
