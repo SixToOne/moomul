@@ -113,6 +113,9 @@ public class QuizController {
 	}
 	@MessageMapping("/quiz/{username}/submit")
 	public void submit(@DestinationVariable String username, SubmitRequestDto submitRequestDto) {
+		Room curRoom=roomRepository.findById(username)
+			.orElseThrow(()->new IllegalArgumentException("방이 존재하지 않습니다."));
+
 		List<SubmitRequestDto> curSubmitInfo=new ArrayList<>();
 		if(submitInfoRepository.findById(username).isPresent()){
 			curSubmitInfo=submitInfoRepository.findById(username).get().getSubmits();
@@ -129,8 +132,7 @@ public class QuizController {
 		}
 
 		submitInfoRepository.save(new SubmitInfo(username,submitList));
-		Room curRoom=roomRepository.findById(username)
-			.orElseThrow(()->new IllegalArgumentException("방이 존재하지 않습니다."));
+
 
 		SubmitResponseDto submitResponseDto=new SubmitResponseDto("submit",submitList.size(),curRoom.getNumOfPeople());
 
@@ -192,7 +194,6 @@ public class QuizController {
 		List<Rank> scoreResult=quizService.getResult(username);
 
 		for(Participant toSender:curParty.getParticipants()) {
-
 			//마지막 문제일경우
 			if (curQuizNum == room.getNumOfQuiz()) {
 				Rank myRank = null;
@@ -207,7 +208,6 @@ public class QuizController {
 					resultResponseDto);
 
 			} else {//마지막 문제 아닐경우
-
 				String myAnswer = null;
 				for (SubmitRequestDto submitRequestDto : submitInfo.getSubmits()) {
 					if (submitRequestDto.nickname().equals(toSender.getNickname())) {
@@ -253,9 +253,11 @@ public class QuizController {
 		//방, 참여자 존재 체크
 		Party curParty=partyRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
-		roomRepository.findById(username)
+		Room room=roomRepository.findById(username)
 			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
 
+		roomRepository.delete(room);
+		roomRepository.save(new Room(room.getUserId(),curParty.getParticipants().size(), room.getNumOfQuiz(),true,room.getNickname()));
 
 		QuizResponseDto cur=quizService.findNextQuiz(username);
 		for(Participant toSender:curParty.getParticipants()){
