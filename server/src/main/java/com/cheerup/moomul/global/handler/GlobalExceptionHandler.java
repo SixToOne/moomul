@@ -42,13 +42,14 @@ public class GlobalExceptionHandler {
 	@SendToUser("/errors")
 	public StompErrorResponse handleException(StompException exception) {
 		System.out.println("GlobalExceptionHandler.handleException");
+		log.error(exception.getMessage());
 		return new StompErrorResponse("error", exception.getMessage());
 	}
 
 	@MessageExceptionHandler
 	@SendToUser("/errors")
 	public StompErrorResponse handleException(BaseException e) {
-		System.out.println("GlobalExceptionHandler.handleException");
+		log.error(e.getMessage());
 		return new StompErrorResponse("error", e.getMessage());
 	}
 

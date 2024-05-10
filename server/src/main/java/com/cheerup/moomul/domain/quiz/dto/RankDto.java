@@ -1,4 +1,4 @@
-package com.cheerup.moomul.domain.quiz.entity;
+package com.cheerup.moomul.domain.quiz.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Rank {
+public class RankDto {
 	Integer rank;
 	String nickname;
 	Integer score;

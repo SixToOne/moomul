@@ -17,4 +17,8 @@ public class BaseException extends RuntimeException {
 	public String getCode() {
 		return errorCode.getMessage();
 	}
+
+	public String getMessage() {
+		return errorCode.getMessage();
+	}
 }
