@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,8 @@ import org.mockito.BDDMockito;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
@@ -23,6 +26,7 @@ import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
+import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
@@ -186,6 +190,38 @@ class ToMeServiceTest {
 		assertThatCode(() -> toMeService.removeToMe("아이디", 1L)).doesNotThrowAnyException();
 
 		verify(postRepository).delete(post);
+	}
+
+	@DisplayName("ToMe 답글 달기 테스트")
+	@Test
+	void post_tome_reply() {
+		UserDetailDto userDetailDto = new UserDetailDto(1L, "아이디");
+		ReplyRequestDto replyRequestDto = new ReplyRequestDto("답글");
+		Pageable pageable = PageRequest.of(0, 10);
+
+		User user = User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.content("소개문구")
+			.build();
+
+		Post post = Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.TO_ME)
+			.user(user)
+			.reply(replyRequestDto.reply())
+			.build();
+
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
+		given(postRepository.findById(1L, PostType.TO_ME)).willReturn(Optional.of(post));
+
+		assertThatCode(() -> toMeService.createReplies(replyRequestDto, "아이디", 1L, userDetailDto,
+			pageable)).doesNotThrowAnyException();
+
+		Assertions.assertEquals(post.getReply(), "답글");
 	}
 
 }

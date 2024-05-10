@@ -164,4 +164,5 @@ class FromMeServiceTest {
 
 		verify(postRepository).delete(post);
 	}
+
 }
