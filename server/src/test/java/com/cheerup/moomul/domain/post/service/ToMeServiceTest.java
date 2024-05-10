@@ -30,6 +30,7 @@ import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
+import com.cheerup.moomul.domain.post.entity.PostLike;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
 import com.cheerup.moomul.domain.post.repository.OptionRepository;
@@ -63,7 +64,7 @@ class ToMeServiceTest {
 
 	@DisplayName("댓글 테스트")
 	@Test
-	void getComments() {
+	void getCommentsTest() {
 
 		CommentResponseDto commentResponse = new CommentResponseDto(1L, "늘보", "잠잘꺼야", LocalDateTime.now(),
 			new ArrayList<>());
@@ -84,7 +85,7 @@ class ToMeServiceTest {
 
 	@DisplayName("댓글 생성 테스트")
 	@Test
-	void createComments() {
+	void createCommentsTest() {
 		// Given
 		UserDetailDto userDetailDto = new UserDetailDto(1L, "늘보");
 		CommentRequestDto commentResponseDto = new CommentRequestDto(1L, "댓글 달았음");
@@ -134,7 +135,7 @@ class ToMeServiceTest {
 
 	@DisplayName("투미 생성 테스트")
 	@Test
-	void createToMe() {
+	void createToMeTest() {
 
 		PostRequestDto postRequestDto = new PostRequestDto("nickname", "content",
 			List.of("option1", "option2", "option3"));
@@ -176,7 +177,7 @@ class ToMeServiceTest {
 
 	@DisplayName("ToMe 삭제 테스트")
 	@Test
-	void delete_tome() {
+	void deleteToMeTest() {
 		User user = User.builder()
 			.id(1L)
 			.username("아이디")
@@ -202,7 +203,7 @@ class ToMeServiceTest {
 
 	@DisplayName("ToMe 답글 달기 테스트")
 	@Test
-	void post_tome_reply() {
+	void replyToMeTest() {
 		UserDetailDto userDetailDto = new UserDetailDto(1L, "아이디");
 		ReplyRequestDto replyRequestDto = new ReplyRequestDto("답글");
 		Pageable pageable = PageRequest.of(0, 10);
@@ -231,5 +232,51 @@ class ToMeServiceTest {
 
 		Assertions.assertEquals(post.getReply(), "답글");
 	}
+
+	@DisplayName("ToMe 좋아요 테스트")
+	@Test
+	void likeToMeTest() {
+		User loginUser = User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.content("소개문구")
+			.build();
+
+		Post post = Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.TO_ME)
+			.user(loginUser)
+			.postLikeList(new ArrayList<>())
+			.build();
+
+		PostLike isLike = PostLike.builder()
+			.id(1L)
+			.post(post)
+			.user(loginUser)
+			.build();
+
+		// 기존 data가 없는 경우 추가
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(loginUser));
+		given(postRepository.findById(1L, PostType.TO_ME)).willReturn(Optional.of(post));
+
+		assertThatCode(() -> toMeService.likeToMe("아이디", 1L)).doesNotThrowAnyException();
+
+		BDDMockito.then(userRepository).should(BDDMockito.times(1)).findByUsername("아이디");
+		BDDMockito.then(postRepository).should(BDDMockito.times(1)).findById(1L, PostType.TO_ME);
+		then(postLikeRepository).should(BDDMockito.times(1)).save(any(PostLike.class));
+
+		// 기존 data가 있는 경우 삭제
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(loginUser));
+		given(postRepository.findById(1L, PostType.TO_ME)).willReturn(Optional.of(post));
+		given(postLikeRepository.findByPostIdAndUserId(1L, 1L)).willReturn(isLike);
+
+		assertThatCode(() -> toMeService.likeToMe("아이디", 1L)).doesNotThrowAnyException();
+
+		then(postLikeRepository).should(BDDMockito.times(1)).deleteById(isLike.getId());
+	}
+
 }
 

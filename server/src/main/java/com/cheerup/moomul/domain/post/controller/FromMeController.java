@@ -81,7 +81,7 @@ public class FromMeController {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostLikeResponseDto likeCnt = fromMeService.likeFromMe(user, username, frommeId);
+		PostLikeResponseDto likeCnt = fromMeService.likeFromMe(username, frommeId);
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
