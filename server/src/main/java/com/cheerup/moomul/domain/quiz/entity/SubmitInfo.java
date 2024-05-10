@@ -36,8 +36,4 @@ public class SubmitInfo {
 		return submits.size();
 	}
 
-	public boolean isHostSubmitted() {
-		return hostSubmit == null;
-	}
-
 }

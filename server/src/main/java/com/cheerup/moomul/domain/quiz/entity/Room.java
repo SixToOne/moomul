@@ -31,9 +31,6 @@ public class Room {
 		participants.add(participant);
 	}
 
-	public void cancel(String nickname) {
-		participants.removeIf(participant -> participant.getNickname().equals(nickname));
-	}
 
 	public int getNumOfParticipants() {
 		return participants.size();
