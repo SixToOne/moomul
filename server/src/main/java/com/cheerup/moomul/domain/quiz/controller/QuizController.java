@@ -54,6 +54,7 @@ public class QuizController {
 	private final UserRepository userRepository;
 	private final SubmitInfoRepository submitInfoRepository;
 
+
 	@MessageMapping("/quiz/{username}/create")
 	public void create(@DestinationVariable String username, CreateRequestDto createRequestDto) {
 		if(username.equals(createRequestDto.nickname()))
@@ -95,22 +96,6 @@ public class QuizController {
 		});
 	}
 
-	@MessageMapping("/quiz/{username}/start")
-	public void start(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
-		User hostUser = userRepository.findByUsername(joinRequestDto.nickname())
-			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
-		if(!hostUser.getUsername().equals(username))
-			throw new BaseException(ErrorCode.NO_AUTHORITY);
-
-		QuizResponseDto cur=quizService.findNextQuiz(username);
-
-		Party curParty=partyRepository.findById(username).get();
-
-		for(Participant toSender:curParty.getParticipants()){
-			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),cur);
-		}
-
-	}
 
 	@MessageMapping("/quiz/{username}/cancel")
 	public void participantCancel(@DestinationVariable String username, CancelRequestDto cancelRequestDto) {
@@ -172,7 +157,9 @@ public class QuizController {
 			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
 
 		//제출목록 불러오기
-		SubmitInfo submitInfo=submitInfoRepository.findById(username).get();
+		SubmitInfo submitInfo=new SubmitInfo(username,new ArrayList<>());
+		if(submitInfoRepository.findById(username).isPresent())
+			submitInfo=submitInfoRepository.findById(username).get();
 		//현재 퀴즈 정보 불러오기
 		QuizInfo quizInfo=quizInfoRepository.findById(username).get();
 		List<Quiz> quizList=quizInfo.getQuizList();
@@ -213,72 +200,76 @@ public class QuizController {
 		//rank 가져오기
 		List<Rank> scoreResult=quizService.getResult(username);
 
+		for(Participant toSender:curParty.getParticipants()) {
 
+			//마지막 문제일경우
+			if (curQuizNum == room.getNumOfQuiz()) {
+				Rank myRank = null;
+				for (Rank cur : scoreResult) {
+					if (cur.getNickname().equals(toSender.getNickname())) {
+						myRank = cur;
+					}
+				}
+				ResultResponseDto resultResponseDto = new ResultResponseDto("result", myRank, scoreResult);
 
+				sendingOperations.convertAndSend("/sub/quiz/" + username + "/" + toSender.getNickname(),
+					resultResponseDto);
 
-		for(Participant toSender:curParty.getParticipants()){
-			String myAnswer=null;
-			for(SubmitRequestDto submitRequestDto:submitInfo.getSubmits()){
-				if(submitRequestDto.nickname().equals(toSender.getNickname())){
-					myAnswer=submitRequestDto.answer();
-					break;
+			} else {//마지막 문제 아닐경우
+
+				String myAnswer = null;
+				for (SubmitRequestDto submitRequestDto : submitInfo.getSubmits()) {
+					if (submitRequestDto.nickname().equals(toSender.getNickname())) {
+						myAnswer = submitRequestDto.answer();
+						break;
+					}
 				}
 
+				//참가자별 response객체 설정후 전송
+				GradeResponseDto gradeResponseDto = new GradeResponseDto("grade",
+					new QuizDto(curQuiz.getQuestion(),
+						curQuiz.getOption1(),
+						curQuiz.getOption2(),
+						option1Count,
+						option2Count
+					),
+					curQuizNum,
+					room.getNumOfQuiz(),
+					LocalDateTime.now().plusSeconds(30),
+					hostAnswer,
+					myAnswer,
+					scoreResult
+				);
+
+				sendingOperations.convertAndSend("/sub/quiz/" + username + "/" + toSender.getNickname(),
+					gradeResponseDto);
 			}
-
-
-			//참가자별 response객체 설정후 전송
-			GradeResponseDto gradeResponseDto=new GradeResponseDto("grade",
-				new QuizDto(curQuiz.getQuestion(),
-					curQuiz.getOption1(),
-					curQuiz.getOption2(),
-					option1Count,
-					option2Count
-				),
-				curQuizNum,
-				room.getNumOfQuiz(),
-				LocalDateTime.now().plusSeconds(30),
-				hostAnswer,
-				myAnswer,
-				scoreResult
-			);
-
-
-			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),gradeResponseDto);
 		}
+
+
 		submitInfoRepository.delete(submitInfo);
 	}
 
 	@MessageMapping("/quiz/{username}/next")
-	public void next(@DestinationVariable String username) {
+	public void next(@DestinationVariable String username, JoinRequestDto joinRequestDto) {
+		
+		//유저 권한 체크
+		User hostUser = userRepository.findByUsername(joinRequestDto.nickname())
+			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
+		if(!hostUser.getUsername().equals(username))
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
+		
+		//방, 참여자 존재 체크
+		Party curParty=partyRepository.findById(username)
+			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
+		roomRepository.findById(username)
+			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
+
 
 		QuizResponseDto cur=quizService.findNextQuiz(username);
-
-		Party curParty=partyRepository.findById(username).get();
-
 		for(Participant toSender:curParty.getParticipants()){
 			sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+toSender.getNickname(),cur);
 		}
-
-	}
-
-	@MessageMapping("/quiz/{username}/result")
-	public void result(@DestinationVariable String username, ResultRequestDto resultRequestDto) {
-		Room room = roomRepository.findById(username)
-			.orElseThrow(() -> new IllegalArgumentException("방이 존재하지 않습니다."));
-		Party curParty = partyRepository.findById(username)
-			.orElseThrow(() -> new IllegalArgumentException("파티가 존재하지 않습니다."));
-
-		List<Rank> result=quizService.getResult(username);
-		Rank myRank=null;
-		for(Rank cur: result){
-			if(cur.getNickname().equals(resultRequestDto.nickname())){
-				myRank=cur;
-			}
-		}
-		ResultResponseDto resultResponseDto=new ResultResponseDto("result",myRank,result);
-
-		sendingOperations.convertAndSend("/sub/quiz/"+username+"/"+resultRequestDto.nickname(),resultResponseDto);
 
 	}
 
