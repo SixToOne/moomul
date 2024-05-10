@@ -22,8 +22,11 @@ public enum ErrorCode {
 	NO_COMMENT_ERROR(404, "COMMENT-001", "존재 하지 않은 댓글 아이디"),
 	NO_OPTION_ERROR(404, "OPTION-001", "투표 옵션이 없을 경우"),
 	NO_QUIZ_ERROR(404, "QUIZ-001", "퀴즈가 개설되지 않은 경우"),
-	FULL_ROOM(404, "QUIZ-002", "퀴즈 방이 꽉 찬 경우");
-
+	FULL_ROOM(404, "QUIZ-002", "퀴즈 방이 꽉 찬 경우"),
+	GAME_STARTED(404, "QUIZ-003", "게임이 이미 시작 된 경우"),
+	DUPLICATED_NICKNAME(404, "QUIZ-004", "이름이 중복되는 경우"),
+	NO_MORE_QUIZ(404,"QUIZ-005","모든 퀴즈를 지나갔을때"),
+	;
 	private final int status;
 	private final String code;
 	private final String message;

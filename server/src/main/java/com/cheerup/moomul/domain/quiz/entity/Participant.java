@@ -11,5 +11,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Participant {
 	String nickname;
-	Integer score;
+	int score;
 }
