@@ -154,7 +154,7 @@ public class FromMeService {
 		UserDetailDto user) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(user.Id())
+		User loginUser = userRepository.findByUsername(user.username())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));

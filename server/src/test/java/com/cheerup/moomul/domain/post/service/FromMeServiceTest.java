@@ -22,6 +22,7 @@ import com.cheerup.moomul.domain.member.entity.UserDetailDto;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostLike;
@@ -209,6 +210,70 @@ class FromMeServiceTest {
 		assertThatCode(() -> fromMeService.likeFromMe("아이디", 1L)).doesNotThrowAnyException();
 
 		then(postLikeRepository).should(BDDMockito.times(1)).deleteById(isLike.getId());
+	}
+
+	@DisplayName("FromMe 투표 테스트")
+	@Test
+	void voteFromMeTest() {
+		UserDetailDto userDetailDto = new UserDetailDto(1L, "아이디");
+		VoteRequestDto voteRequestDto = new VoteRequestDto(1L);
+
+		User user = User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.content("소개문구")
+			.build();
+
+		Post post = Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.FROM_ME)
+			.user(user)
+			.optionList(new ArrayList<>())
+			.build();
+
+		for (long i = 0; i < 3; i++) {
+			Option option = Option.builder()
+				.id(i + 1)
+				.content("보기 " + (i + 1))
+				.post(post)
+				.voteCnt(0L)
+				.build();
+			post.getOptionList().add(option);
+		}
+
+		// 추가
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
+		given(postRepository.findById(1L, PostType.FROM_ME)).willReturn(Optional.of(post));
+		given(optionRepository.findById(1L)).willReturn(
+			Optional.of(post.getOptionList().get(voteRequestDto.voted().intValue() - 1)));
+
+		assertThatCode(
+			() -> fromMeService.selectFromMeVote(voteRequestDto, "아이디", 1L, userDetailDto)).doesNotThrowAnyException();
+
+		BDDMockito.then(userRepository).should(BDDMockito.times(2)).findByUsername("아이디");
+		BDDMockito.then(postRepository).should(BDDMockito.times(2)).findById(1L, PostType.FROM_ME);
+		then(voteRepository).should(BDDMockito.times(1)).save(any(Vote.class));
+
+		// 삭제
+		Vote voted = Vote.builder()
+			.id(1L)
+			.option(post.getOptionList().get(voteRequestDto.voted().intValue() - 1))
+			.user(user)
+			.build();
+
+		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
+		given(postRepository.findById(1L, PostType.FROM_ME)).willReturn(Optional.of(post));
+		given(optionRepository.findById(1L)).willReturn(
+			Optional.of(post.getOptionList().get(voteRequestDto.voted().intValue() - 1)));
+		given(voteRepository.findByOptionIdAndUserId(1L, 1L)).willReturn(Optional.of(voted));
+
+		assertThatCode(
+			() -> fromMeService.selectFromMeVote(voteRequestDto, "아이디", 1L, userDetailDto)).doesNotThrowAnyException();
+
+		then(voteRepository).should(BDDMockito.times(1)).delete(voted);
 	}
 
 }
