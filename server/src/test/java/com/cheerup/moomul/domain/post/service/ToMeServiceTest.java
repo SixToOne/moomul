@@ -33,7 +33,9 @@ import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
 import com.cheerup.moomul.domain.post.repository.OptionRepository;
+import com.cheerup.moomul.domain.post.repository.PostLikeRepository;
 import com.cheerup.moomul.domain.post.repository.PostRepository;
+import com.cheerup.moomul.domain.post.repository.VoteRepository;
 
 @ExtendWith(MockitoExtension.class)
 class ToMeServiceTest {
@@ -45,7 +47,13 @@ class ToMeServiceTest {
 	PostRepository postRepository;
 
 	@Mock
+	PostLikeRepository postLikeRepository;
+
+	@Mock
 	UserRepository userRepository;
+
+	@Mock
+	VoteRepository voteRepository;
 
 	@Mock
 	OptionRepository optionRepository;
@@ -212,7 +220,7 @@ class ToMeServiceTest {
 			.nickname("닉네임")
 			.postType(PostType.TO_ME)
 			.user(user)
-			.reply(replyRequestDto.reply())
+			.reply(null)
 			.build();
 
 		given(userRepository.findByUsername("아이디")).willReturn(Optional.of(user));
@@ -223,5 +231,5 @@ class ToMeServiceTest {
 
 		Assertions.assertEquals(post.getReply(), "답글");
 	}
-
 }
+
