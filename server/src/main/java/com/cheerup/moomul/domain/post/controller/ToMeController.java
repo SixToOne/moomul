@@ -126,7 +126,7 @@ public class ToMeController {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostLikeResponseDto likeCnt = toMeService.likeToMe(user, username, tomeId);
+		PostLikeResponseDto likeCnt = toMeService.likeToMe(username, tomeId);
 		return ResponseEntity.ok().body(likeCnt);
 	}
 

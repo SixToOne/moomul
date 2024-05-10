@@ -122,24 +122,25 @@ public class ToMeService {
 	}
 
 	@Transactional
-	public PostLikeResponseDto likeToMe(UserDetailDto user, String username, Long tomeId) {
+	public PostLikeResponseDto likeToMe(String username, Long tomeId) {
 		Post post = postRepository.findById(tomeId, PostType.TO_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		if (!post.getUser().getUsername().equals(username)) {
-			throw new BaseException(ErrorCode.NO_POST_ERROR);
-		}
+		User loginUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
-		User loginUser = userRepository.findByUsername(user.username())
-			.orElseThrow(() -> new BaseException(ErrorCode.NO_AUTHORITY));
-		PostLike isLike = postLikeRepository.findByPostIdAndUserId(tomeId, loginUser.getId());
+		if (post.getUser().equals(loginUser)) {
+			PostLike isLike = postLikeRepository.findByPostIdAndUserId(tomeId, loginUser.getId());
 
-		if (isLike != null) {
-			postLikeRepository.deleteById(isLike.getId());
+			if (isLike != null) {
+				postLikeRepository.deleteById(isLike.getId());
+			} else {
+				postLikeRepository.save(PostLike.builder().post(post).user(loginUser).build());
+			}
+
+			return new PostLikeResponseDto(postLikeRepository.countByPostId(tomeId));
 		} else {
-			postLikeRepository.save(PostLike.builder().post(post).user(loginUser).build());
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
-
-		return new PostLikeResponseDto(postLikeRepository.countByPostId(tomeId));
 	}
 
 	@Transactional
