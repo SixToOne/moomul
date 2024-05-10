@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -40,28 +41,28 @@ public class UserController {
 	}
 
 
-	@GetMapping("/{userId}")
-	public ResponseEntity<ProfileResponseDto> profile(@PathVariable Long userId, @AuthenticationPrincipal UserDetailDto user){
+	@GetMapping("/profile")
+	public ResponseEntity<ProfileResponseDto> profile(@RequestParam String username, @AuthenticationPrincipal UserDetailDto user){
 
 		return ResponseEntity.status(HttpStatus.OK)
-			.body(userService.profile(userId,user));
+			.body(userService.profile(username,user));
 	}
 
 	@PostMapping("/id-check")
-	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody IdCheckRequestDto idCheckRequestDto){
+	public ResponseEntity<IdCheckResponseDto> idCheck(@RequestBody @Valid IdCheckRequestDto idCheckRequestDto){
 		return ResponseEntity.status(HttpStatus.OK)
 			.body(userService.idCheck(idCheckRequestDto.username()));
 	}
 
-	@PatchMapping("/{userId}")
+	@PatchMapping("/profile")
 	public ResponseEntity<ProfileResponseDto> modifyProfile(@RequestBody ProfileModifyRequestDto profileModifyRequestDto,
-		@PathVariable Long userId,//피드 주인 아이디
+		@RequestParam String username,//피드 주인 아이디
 		@AuthenticationPrincipal UserDetailDto user){
 		if(user==null){
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if(!user.Id().equals(userId)){
+		if(!user.username().equals(username)){
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
@@ -69,15 +70,15 @@ public class UserController {
 			.body(userService.modifyProfile(user,profileModifyRequestDto));
 	}
 
-	@PatchMapping("/{userId}/images")
+	@PatchMapping("/profile/images")
 	public ResponseEntity<ProfileResponseDto> modifyProfileImage(@RequestPart MultipartFile image,
-		@PathVariable Long userId,//피드 주인 아이디
+		@RequestParam String username,//피드 주인 아이디
 		@AuthenticationPrincipal UserDetailDto user){
 		if(user==null){
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if(!user.Id().equals(userId)){
+		if(!user.username().equals(username)){
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 

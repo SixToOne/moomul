@@ -1,5 +1,6 @@
 package com.cheerup.moomul.domain.post.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,8 +48,8 @@ public class FromMeService {
 	private final CommentRepository commentRepository;
 
 	@Transactional
-	public void createFromMe(Long userId, PostRequestDto postRequestDto) {
-		User user = userRepository.findById(userId)
+	public void createFromMe(String username, PostRequestDto postRequestDto) {
+		User user = userRepository.findByUsername(username)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		Post saved = postRepository.save(Post.builder()
@@ -67,10 +68,10 @@ public class FromMeService {
 	}
 
 	@Transactional
-	public void removeFromMe(Long userId, Long frommeId) {
+	public void removeFromMe(String username, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		User loginUser = userRepository.findById(userId)
+		User loginUser = userRepository.findByUsername(username)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
 		if (post.getUser().equals(loginUser)) {
@@ -80,11 +81,14 @@ public class FromMeService {
 		}
 	}
 
-	public PostResponseDto getFromMe(UserDetailDto user, Long userId, Long frommeId) {
+	public PostResponseDto getFromMe(UserDetailDto user, String username, Long frommeId) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 
-		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(userId,
+		Optional<Vote> vote = voteRepository.findByUserIdAndOptionIdIn(findUser.getId(),
 			post.getOptionList().stream().map(Option::getId).toList());
 
 		Long voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
@@ -92,72 +96,94 @@ public class FromMeService {
 		if (user != null) {
 			liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), frommeId);
 		}
+		long voteCnt = voteRepository.countAllByOptionIdIn(
+			post.getOptionList().stream().map(Option::getId).toList());
 
-		return PostResponseDto.from(post, voteId, liked);
+		return PostResponseDto.from(post, voteCnt, voteId, liked);
 	}
 
-	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, Long userId, Pageable pageable) {
-		return postRepository.findByUserId(userId, PostType.FROM_ME, pageable)
+	public List<PostResponseDto> getFromMeFeed(UserDetailDto user, String username, Pageable pageable) {
+		User findUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
+
+		return postRepository.findByUserId(findUser.getId(), PostType.FROM_ME, pageable)
 			.stream().map(post -> {
+				List<Option> optionList = post.getOptionList() != null ? post.getOptionList() : Collections.emptyList();
 				Optional<Vote> vote;
 				Long voteId = null;
 				boolean liked = false;
 				if (user != null) {
-					System.out.println("user.getId(): " + user.Id());
+					// System.out.println("user.getId(): " + user.Id());
 					vote = voteRepository.findByUserIdAndOptionIdIn(user.Id(),
-						post.getOptionList().stream().map(Option::getId).toList());
+						optionList.stream().map(Option::getId).toList());
 					voteId = vote.map(Vote::getOption).map(Option::getId).orElse(null);
 					liked = postLikeRepository.existsByUserIdAndPostId(user.Id(), post.getId());
 				}
-				return PostResponseDto.from(post, voteId, liked);
+				long voteCnt = voteRepository.countAllByOptionIdIn(
+					post.getOptionList().stream().map(Option::getId).toList());
+
+				return PostResponseDto.from(post, voteCnt, voteId, liked);
 			}).toList();
 
 	}
 
 	@Transactional
-	public PostLikeResponseDto likeFromMe(UserDetailDto user, Long userId, Long frommeId) {
+	public PostLikeResponseDto likeFromMe(String username, Long frommeId) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
-		if (!post.getUser().getId().equals(userId)) {
-			throw new BaseException(ErrorCode.NO_POST_ERROR);
-		}
+		User loginUser = userRepository.findByUsername(username)
+			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 
-		User loginUser = userRepository.findById(user.Id())
-			.orElseThrow(() -> new BaseException(ErrorCode.NO_AUTHORITY));
-		PostLike isLike = postLikeRepository.findByPostIdAndUserId(frommeId, loginUser.getId());
+		if (post.getUser().equals(loginUser)) {
+			PostLike isLike = postLikeRepository.findByPostIdAndUserId(frommeId, loginUser.getId());
 
-		if (isLike != null) {
-			postLikeRepository.deleteById(isLike.getId());
+			if (isLike != null) {
+				postLikeRepository.deleteById(isLike.getId());
+			} else {
+				postLikeRepository.save(PostLike.builder().post(post).user(loginUser).build());
+			}
+
+			return new PostLikeResponseDto(postLikeRepository.countByPostId(frommeId));
 		} else {
-			postLikeRepository.save(PostLike.builder()
-				.post(post)
-				.user(loginUser)
-				.build());
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
-
-		return new PostLikeResponseDto(postLikeRepository.countByPostId(frommeId));
 	}
 
 	@Transactional
-	public void selectFromMeVote(VoteRequestDto optionId, Long userId, Long frommeId, UserDetailDto user) {
+	public PostResponseDto selectFromMeVote(VoteRequestDto optionId, String username, Long frommeId,
+		UserDetailDto user) {
 		Post post = postRepository.findById(frommeId, PostType.FROM_ME)
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_POST_ERROR));
 		User loginUser = userRepository.findById(user.Id())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_USER_ERROR));
 		Option options = optionRepository.findById(optionId.voted())
 			.orElseThrow(() -> new BaseException(ErrorCode.NO_OPTION_ERROR));
+		List<Option> optionList = post.getOptionList();
 
-		if (!post.getOptionList().isEmpty()) {
-			Vote isVoted = voteRepository.findByUserIdAndOptionId(loginUser.getId(), optionId.voted());
-
-			if (isVoted != null) {
-				voteRepository.deleteById(isVoted.getId());
-			} else {
-				voteRepository.save(Vote.builder().user(loginUser).option(options).build());
+		if (!optionList.isEmpty()) {
+			Vote voted = null;
+			for (Option option : optionList) {
+				Vote vote = voteRepository.findByOptionIdAndUserId(option.getId(), loginUser.getId()).orElse(null);
+				if (vote != null) {
+					voted = vote;
+				}
 			}
-			getFromMe(user, userId, frommeId);
+
+			Vote newvote = Vote.builder()
+				.user(loginUser)
+				.option(options)
+				.build();
+
+			if (voted != null) {
+				voteRepository.delete(voted);
+			}
+
+			if (voted == null || voted.getOption() != newvote.getOption()) {
+				voteRepository.save(newvote);
+			}
+			return getFromMe(user, username, frommeId);
 		} else {
-			throw new BaseException(ErrorCode.NO_OPTION_ERROR);
+			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 	}
 

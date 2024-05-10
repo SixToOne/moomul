@@ -27,6 +27,10 @@ public class UserService {
 	private final S3Uploader s3Uploader;
 
 	public Void signUp(SignUpDto signUpDto) {
+		if(userRepository.findByUsername(signUpDto.username()).isPresent()){
+			throw new BaseException(ErrorCode.DUPLICATE_USER_ERROR);
+		}
+
 		userRepository.save(
 			User.builder()
 			.username(signUpDto.username())
@@ -38,15 +42,15 @@ public class UserService {
 
 
 
-	public ProfileResponseDto profile(Long userId, UserDetailDto loginUserId) {
+	public ProfileResponseDto profile(String username, UserDetailDto loginUserId) {
 		boolean isMine=false;
-		if(loginUserId!=null&&loginUserId.Id().equals(userId)){
+		if(loginUserId!=null&&loginUserId.username().equals(username)){
 			isMine=true;
 		}
-		User curUser=userRepository.findById(userId)
+		User curUser=userRepository.findByUsername(username)
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 
-		ProfileDto profileDto= userRepository.findProfileById(userId);
+		ProfileDto profileDto= userRepository.findProfileById(curUser.getId());
 
 		return new ProfileResponseDto(profileDto.nickname(),
 			profileDto.content(),
@@ -66,7 +70,7 @@ public class UserService {
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 		curUser.updateUser(profileModifyRequestDto.nickname(), profileModifyRequestDto.content());
 
-		return profile(user.Id(),new UserDetailDto(curUser.getId()));
+		return profile(user.username(),new UserDetailDto(curUser.getId(),curUser.getUsername()));
 	}
 
 	@Transactional
@@ -82,7 +86,7 @@ public class UserService {
 		}
 		curUser.updateUserImage(imageUrl);
 
-		return profile(user.Id(),new UserDetailDto(curUser.getId()));
+		return profile(user.username(),new UserDetailDto(curUser.getId(), curUser.getUsername()));
 	}
 
 }

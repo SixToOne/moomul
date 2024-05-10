@@ -24,8 +24,11 @@ public class UserDetailService {
 	private final JwtProvider jwtProvider;
 
 	public UserDetailDto getUser(Long userId){
-		if(userRepository.findById(userId).isPresent())
-			return new UserDetailDto(userId);
+
+		if(userRepository.findById(userId).isPresent()) {
+			User user=userRepository.findById(userId).get();
+			return new UserDetailDto(userId, user.getUsername());
+		}
 		return null;
 	}
 

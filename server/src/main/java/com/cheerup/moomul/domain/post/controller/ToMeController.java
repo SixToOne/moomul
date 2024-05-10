@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
@@ -33,7 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping(("/users/{userId}/tome"))
+@RequestMapping(("/tome"))
 @Slf4j
 public class ToMeController {
 	private final ToMeService toMeService;
@@ -47,15 +48,10 @@ public class ToMeController {
 
 	@PostMapping("{tomeId}/comments")
 	ResponseEntity<List<CommentResponseDto>> postComments(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId,
 		@PathVariable Long tomeId, @RequestBody CommentRequestDto comment) {
 
 		if (user == null) {
-			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
-		}
-
-		if (!user.Id().equals(userId)) {
-			throw new BaseException(ErrorCode.NO_AUTHORITY);
+			throw new BaseException(ErrorCode.NO_LOGIN);
 		}
 
 		toMeService.createComments(user, tomeId, comment); //현재 로그인 user, 게시글 userId, 게시글 Id
@@ -66,89 +62,88 @@ public class ToMeController {
 	}
 
 	@PostMapping
-	public ResponseEntity<Void> postToMe(@PathVariable Long userId,
-		@RequestBody PostRequestDto postRequestDto) {
-		toMeService.createToMe(userId, postRequestDto);
+	public ResponseEntity<Void> postToMe(@RequestParam String username, @RequestBody PostRequestDto postRequestDto) {
+		toMeService.createToMe(username, postRequestDto);
 		return new ResponseEntity<>(HttpStatus.OK);
 	}
 
 	@GetMapping("/replied")
 	public ResponseEntity<List<PostResponseDto>> getRepliedToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId, Pageable pageable) {
-		return ResponseEntity.ok(toMeService.getRepliedToMe(user, userId, pageable));
+		@RequestParam String username, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getRepliedToMe(user, username, pageable));
 	}
 
 	@GetMapping("/not-replied")
 	public ResponseEntity<List<PostResponseDto>> getNotRepliedToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId, Pageable pageable) {
-		return ResponseEntity.ok(toMeService.getNotRepliedToMe(user, userId, pageable));
+		@RequestParam String username, Pageable pageable) {
+		return ResponseEntity.ok(toMeService.getNotRepliedToMe(user, username, pageable));
 	}
 
-	@GetMapping("/{frommeId}")
+	@GetMapping("/{tomeId}")
 	public ResponseEntity<PostResponseDto> getToMe(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long frommeId,
-		@PathVariable Long userId) {
-		return ResponseEntity.ok(toMeService.getToMe(user, userId, frommeId));
+		@PathVariable Long tomeId,
+		@RequestParam String username) {
+		return ResponseEntity.ok(toMeService.getToMe(user, username, tomeId));
 	}
 
 	@DeleteMapping("/{tomeId}")
-	public ResponseEntity<Void> deleteToMe(@AuthenticationPrincipal UserDetailDto user, @PathVariable Long userId,
+	public ResponseEntity<Void> deleteToMe(@AuthenticationPrincipal UserDetailDto user, @RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.removeToMe(userId, tomeId);
+		toMeService.removeToMe(username, tomeId);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{tomeId}/replies")
 	public ResponseEntity<Void> postReplies(@AuthenticationPrincipal UserDetailDto user,
 		@RequestBody ReplyRequestDto reply,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId, Pageable pageable) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.createReplies(reply, userId, tomeId, user, pageable);
+		toMeService.createReplies(reply, username, tomeId, user, pageable);
 		return ResponseEntity.ok().build();
 	}
 
 	@PostMapping("/{tomeId}/likes")
 	public ResponseEntity<PostLikeResponseDto> postToMeLikes(@AuthenticationPrincipal UserDetailDto user,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		PostLikeResponseDto likeCnt = toMeService.likeToMe(user, userId, tomeId);
+		PostLikeResponseDto likeCnt = toMeService.likeToMe(username, tomeId);
 		return ResponseEntity.ok().body(likeCnt);
 	}
 
 	@PatchMapping("/{tomeId}/votes")
 	public ResponseEntity<PostResponseDto> voteToMe(@AuthenticationPrincipal UserDetailDto user,
 		@RequestBody VoteRequestDto voted,
-		@PathVariable Long userId,
+		@RequestParam String username,
 		@PathVariable Long tomeId) {
 		if (user == null) {
 			throw new BaseException(ErrorCode.NO_JWT_TOKEN);
 		}
 
-		if (!user.Id().equals(userId)) {
+		if (!user.username().equals(username)) {
 			throw new BaseException(ErrorCode.NO_AUTHORITY);
 		}
 
-		toMeService.selectToMeVote(voted, userId, tomeId, user);
-		return ResponseEntity.ok().build();
+		PostResponseDto dto = toMeService.selectToMeVote(voted, username, tomeId, user);
+		return new ResponseEntity<>(dto, HttpStatus.ACCEPTED);
 	}
 }

@@ -43,12 +43,12 @@ public class SecurityConfig { // 스프링 시큐리티에 필요한 설정
 		http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-				.requestMatchers("/swagger-ui.html","/swagger-ui/**","/v3/api-docs/**").permitAll()
+				.requestMatchers("/swagger-ui.html","/swagger-ui/**","/v3/api-docs/**", "/api/ws/**").permitAll()
 				.requestMatchers(String.valueOf(HttpMethod.PATCH),"/api/users/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/users/{userId}/tome/{tomeId}/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/users/{userId}/fromme/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/users/{userId}/tome/{tomeId}/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/users/{userId}/fromme/**").authenticated()
+				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/tome/{tomeId}/**").authenticated()
+				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/fromme/**").authenticated()
+				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/tome/{tomeId}/**").authenticated()
+				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/fromme/**").authenticated()
 				.anyRequest().permitAll()
 			);
 
