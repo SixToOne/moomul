@@ -11,14 +11,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
-
-import com.amazonaws.HttpMethod;
-import com.cheerup.moomul.domain.member.jwt.JwtExceptionFilter;
-import com.cheerup.moomul.domain.member.jwt.JwtFilter;
-import com.cheerup.moomul.domain.member.service.UserDetailService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,31 +20,20 @@ import lombok.RequiredArgsConstructor;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig { // 스프링 시큐리티에 필요한 설정
-	private final UserDetailService userDetailService;
 	@Bean
 	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
 		// CSRF 설정 Disable
 		http.csrf(AbstractHttpConfigurer::disable);
 		// JWT 인증 방식 세팅
-		http
+		http.formLogin(AbstractHttpConfigurer::disable)
 			.httpBasic(AbstractHttpConfigurer::disable)
 			.sessionManagement(
-				(sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.addFilterBefore(new JwtFilter(userDetailService), UsernamePasswordAuthenticationFilter.class)
-				.addFilterBefore(new JwtExceptionFilter(), JwtFilter.class);
+				(sessionManagement) -> sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
 		http
 			.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-			.authorizeHttpRequests(authorizeRequests -> authorizeRequests
-				.requestMatchers("/swagger-ui.html","/swagger-ui/**","/v3/api-docs/**", "/api/ws/**").permitAll()
-				.requestMatchers(String.valueOf(HttpMethod.PATCH),"/api/users/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/tome/{tomeId}/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.POST),"/api/fromme/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/tome/{tomeId}/**").authenticated()
-				.requestMatchers(String.valueOf(HttpMethod.DELETE),"/api/fromme/**").authenticated()
-				.anyRequest().permitAll()
-			);
+			.authorizeHttpRequests(authorizeRequests -> authorizeRequests.anyRequest().permitAll());
 
 		return http.build();
 	}
