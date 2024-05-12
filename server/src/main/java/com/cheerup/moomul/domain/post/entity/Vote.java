@@ -1,5 +1,8 @@
 package com.cheerup.moomul.domain.post.entity;
 
+import org.hibernate.annotations.SQLDelete;
+import org.hibernate.annotations.SQLRestriction;
+
 import com.cheerup.moomul.domain.BaseEntity;
 import com.cheerup.moomul.domain.member.entity.User;
 
