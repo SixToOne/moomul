@@ -88,11 +88,9 @@ public class UserDetailService {
 			}
 		}
 
-
-
 		Integer loginId = JwtProvider.getUserId(token);
 		UserDetailDto loginUser=getUser(Long.valueOf(loginId));
 
-		return new AuthResponseDto(loginUser.Id(),isLogin);
+		return new AuthResponseDto(loginUser.Id(), loginUser.username(), isLogin);
 	}
 }
