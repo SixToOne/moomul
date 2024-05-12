@@ -1,10 +1,9 @@
 package com.cheerup.moomul.domain.post.entity;
 
-import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.SQLRestriction;
+import org.hibernate.annotations.Formula;
 
 import com.cheerup.moomul.domain.BaseEntity;
-import com.cheerup.moomul.domain.member.entity.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -35,7 +34,12 @@ public class Option extends BaseEntity {
 
 	private String content;
 
+	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "post_id")
 	private Post post;
+
+	@Formula("(SELECT COUNT(*) FROM vote v WHERE v.option_id = id)")
+	private Long voteCnt;
+
 }
