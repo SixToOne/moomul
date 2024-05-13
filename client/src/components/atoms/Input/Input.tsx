@@ -27,6 +27,7 @@ const StyledInputLabel = styled.label`
   position: relative;
   width: 100%;
   display: grid;
+
   .label {
     position: absolute;
     top: 20px;
@@ -49,28 +50,27 @@ const StyledInputLabel = styled.label`
     height: 50px;
     font-size: 14px;
     font-weight: 400;
-    box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.3);
-    color: #000;
     transition: all 0.15s ease;
-    box-shadow: inset 0 -2px 0 'inset 0 -1px 0 rgba(0, 0, 0, 0.3)';
+    border: 1px solid ${({ theme }) => theme.BORDER_LIGHT};
+    border-radius: 10px;
+    overflow: hidden;
   }
   input:not(:placeholder-shown) + .label {
-    color: rgba(0, 0, 0, 0.5);
     transform: translate3d(0, -12px, 0) scale(0.75);
   }
   input:focus {
     outline: none;
-    box-shadow: inset 0 -2px 0 ${({ theme }) => theme.PRIMARY};
+    border-radius: 10px;
+    border: 2px solid ${({ theme }) => theme.PRIMARY};
   }
   input:focus + .label {
-    color: black;
     transform: translate3d(0, -12px, 0) scale(0.75);
   }
 
   &.invalid,
   &.invalid input,
   &.invalid input:focus {
-    box-shadow: inset 0 -2px 0 red;
+    border: 2px solid red;
   }
 `;
 

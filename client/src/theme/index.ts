@@ -9,7 +9,7 @@ const theme: DefaultTheme = {
   BORDER_LIGHT: '#E5E5E5',
   WHITE: '#ffffff',
   DARK_BLACK: '',
-  LIGHT_BLACK: '',
+  LIGHT_BLACK: '#919191',
 };
 
 export default theme;

@@ -8,6 +8,7 @@ import { postLogin } from '@/apis/user/post-login';
 import { useNavigate } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import userSessionAtom from '@/recoil/atoms/userSession';
+import { checkAuth } from '@/apis/user/check-auth';
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -26,10 +27,16 @@ const LoginForm = () => {
   const handleClickLoginButton = async () => {
     const data = await postLogin(loginFormData);
     if (data) {
-      const { userId, accessToken } = data;
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
+      const { accessToken } = data;
       localStorage.setItem('accessToken', accessToken);
-      setUserSession({ userId });
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + accessToken;
+      const d = await checkAuth();
+      if (d && d.isLogin) {
+        setUserSession({
+          userId: d.userId as string,
+          username: d.username as string,
+        });
+      }
       alert(`로그인 성공`);
       navigate('/');
     } else {
@@ -62,10 +69,10 @@ const StyledLoginForm = styled.form`
   padding: 10px;
 
   .login-form__input-box {
-    margin-bottom: 32px;
+    margin-bottom: 20px;
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 12px;
   }
 `;
 

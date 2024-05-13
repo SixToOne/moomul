@@ -9,7 +9,10 @@ const useAuth = () => {
   const getToken = async () => {
     const data = await checkAuth();
     if (data && data.isLogin) {
-      setUserSession({ userId: data.userId as string });
+      setUserSession({
+        userId: data.userId as string,
+        username: data.username as string,
+      });
     }
   };
 

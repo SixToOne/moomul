@@ -4,6 +4,7 @@ const path = 'users/auth';
 
 interface ReturnType {
   userId: string | undefined;
+  username: string | undefined;
   isLogin: boolean;
 }
 
@@ -13,6 +14,7 @@ export const checkAuth = async () => {
   if (!accessToken) {
     return {
       userId: undefined,
+      username: undefined,
       isLogin: false,
     };
   }

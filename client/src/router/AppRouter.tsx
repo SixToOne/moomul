@@ -4,20 +4,25 @@ import App from '@/App';
 
 // pages
 import Home from '@/pages/Home';
-import LogIn from '@/pages/Login';
 import Signup from '@/pages/Signup';
+import Login from '@/pages/Login';
+import PrivateRoutes from './PrivateRoutes';
 
 const routes: RouteObject[] = [
   {
     element: <App />,
     children: [
       {
-        path: '/',
+        element: <PrivateRoutes />,
+        children: [{ path: '/', element: <Login /> }],
+      },
+      {
+        path: '/:username',
         element: <Home />,
       },
       {
         path: '/login',
-        element: <LogIn />,
+        element: <Login />,
       },
       {
         path: '/signup',

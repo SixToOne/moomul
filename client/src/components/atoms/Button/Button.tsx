@@ -4,6 +4,7 @@ import styled from 'styled-components';
 interface StyledProps {
   width?: string;
   height?: string;
+  fontSize?: string;
 }
 
 interface ButtonProps extends StyledProps {
@@ -20,14 +21,14 @@ const Button = ({ content, onClick, ...styledProps }: ButtonProps) => {
 };
 
 const StyledButton = styled.button<StyledProps>`
-  width: ${({ width }) => (width ? width : '100%')};
-  padding: 10px;
+  width: ${({ width }) => width ?? '100%'};
+  padding: 5px 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   background-color: ${({ theme }) => theme.PRIMARY};
   color: ${({ theme }) => theme.WHITE};
-  font-size: 16px;
+  font-size: ${({ fontSize }) => fontSize ?? '16px'};
   font-weight: 500;
   border-radius: 4px;
   cursor: pointer;

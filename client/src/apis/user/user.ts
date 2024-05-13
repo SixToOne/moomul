@@ -1,5 +1,6 @@
 export interface IUser {
   userId: string;
+  username: string;
 }
 
 export interface ILoginForm {
@@ -9,4 +10,14 @@ export interface ILoginForm {
 
 export interface ISignupForm extends ILoginForm {
   nickname: string;
+}
+
+export interface IUserProfile {
+  nickname: string;
+  content: string;
+  image: string;
+  isMine: boolean;
+  toMe: number;
+  fromMe: number;
+  today: number;
 }
