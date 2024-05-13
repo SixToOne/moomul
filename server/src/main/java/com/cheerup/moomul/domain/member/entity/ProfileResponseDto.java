@@ -7,6 +7,6 @@ public record ProfileResponseDto(
 	Boolean isMine,
 	Long toMe,
 	Long fromMe,
-	Long today
+	int today
 ) {
 }
