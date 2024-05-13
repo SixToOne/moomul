@@ -1,5 +1,6 @@
 package com.cheerup.moomul.domain.member.service;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -9,8 +10,10 @@ import com.cheerup.moomul.domain.member.entity.ProfileDto;
 import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
+import com.cheerup.moomul.domain.member.entity.Today;
 import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.entity.UserDetailDto;
+import com.cheerup.moomul.domain.member.repository.TodayRepository;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.global.response.BaseException;
 import com.cheerup.moomul.global.response.ErrorCode;
@@ -25,6 +28,7 @@ public class UserService {
 
 	private final UserRepository userRepository;
 	private final S3Uploader s3Uploader;
+	private final TodayRepository todayRepository;
 
 	public Void signUp(SignUpDto signUpDto) {
 		if(userRepository.findByUsername(signUpDto.username()).isPresent()){
@@ -41,16 +45,28 @@ public class UserService {
 	}
 
 
+	@Scheduled(cron = "0 0 0 * * *")
+	public void resetToday(){
+		todayRepository.deleteAll();
+	}
 
+
+	@Transactional
 	public ProfileResponseDto profile(String username, UserDetailDto loginUserId) {
-		boolean isMine=false;
-		if(loginUserId!=null&&loginUserId.username().equals(username)){
-			isMine=true;
-		}
+		boolean isMine= loginUserId != null && loginUserId.username().equals(username);
+
 		User curUser=userRepository.findByUsername(username)
 			.orElseThrow(()->new BaseException(ErrorCode.NO_USER_ERROR));
 
 		ProfileDto profileDto= userRepository.findProfileById(curUser.getId());
+
+		int todayCount = todayRepository.findById(username)
+			.map(today -> isMine ? today.getToday() : today.getToday() + 1)
+			.orElse(1);
+
+		todayRepository.save(new Today(username, todayCount));
+
+
 
 		return new ProfileResponseDto(profileDto.nickname(),
 			profileDto.content(),
@@ -58,7 +74,7 @@ public class UserService {
 			isMine,
 			profileDto.toMe(),
 			profileDto.fromMe(),
-			0L);
+			todayCount);
 	}
 
 	public IdCheckResponseDto idCheck(String username) {
