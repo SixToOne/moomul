@@ -63,12 +63,14 @@ dependencies {
     testImplementation "org.testcontainers:junit-jupiter:1.19.7"
     testImplementation "org.testcontainers:mysql:1.19.7"
     testImplementation 'org.testcontainers:postgresql'
-    
+
     //websocket, stomp 추가
     implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.webjars:sockjs-client:1.1.2'
     implementation 'org.webjars:stomp-websocket:2.3.3-1'
 
+    // PATCH restTemplate 사용하기 위한 apache httpclient 추가
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
 }
 
 tasks.named('test') {
