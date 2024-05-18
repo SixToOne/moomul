@@ -27,7 +27,9 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostCommentRequestParam;
+import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
+import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostType;
@@ -65,8 +67,11 @@ class FromMeControllerTest {
 
 	@BeforeEach
 	void setUp() {
-		// getComments 테스트 전 데이터 초기화 처리
+		// saveAll() 에러 방지 초기화
 		commentRepository.deleteAll();
+		optionRepository.deleteAll();
+		voteRepository.deleteAll();
+		postLikeRepository.deleteAll();
 	}
 
 	@Test
@@ -106,7 +111,6 @@ class FromMeControllerTest {
 		HttpHeaders headers = new HttpHeaders();
 		headers.setBearerAuth(token);
 		HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
-		System.out.println(token);
 		ResponseEntity<Void> responseEntity = this.restTemplate.exchange(url, HttpMethod.DELETE, requestEntity,
 			Void.class);
 
@@ -122,15 +126,6 @@ class FromMeControllerTest {
 			.content("소개문구")
 			.build());
 
-		Post post = postRepository.save(Post.builder()
-			.id(1L)
-			.content("내용")
-			.nickname("닉네임")
-			.postType(PostType.FROM_ME)
-			.reply("답글")
-			.user(user)
-			.build());
-
 		List<String> options = new ArrayList<>(List.of("보기1", "보기2", "보기3"));
 		String url = "http://localhost:" + this.port + "/api/fromme?username=아이디";
 		PostRequestDto postRequestDto = new PostRequestDto("닉네임", "내용", options);
@@ -144,22 +139,146 @@ class FromMeControllerTest {
 
 	@Test
 	void getFromMeFeed() {
-		// @AuthenticationPrincipal UserDetailDto
+		User user = userRepository.save(User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.password("pw")
+			.content("소개문구")
+			.build());
+
+		Post post = postRepository.save(Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.FROM_ME)
+			.reply("답글")
+			.user(user)
+			.build());
+
+		// 로그인 토큰 받기 (@AuthenticationPrincipal UserDetailDto)
+		String loginUrl = "http://localhost:" + this.port + "/api/users/login";
+		LoginRequestDto loginRequestDto = new LoginRequestDto("아이디", "pw");
+		HttpHeaders loginHeaders = new HttpHeaders();
+		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<LoginRequestDto> loginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
+		ParameterizedTypeReference<LoginResponseDto> loginResponseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<LoginResponseDto> loginResponseEntity = this.restTemplate.exchange(loginUrl,
+			HttpMethod.POST,
+			loginRequestEntity, loginResponseType);
+
+		// 받아온 토큰 기반 테스트
+		String url = "http://localhost:" + this.port + "/api/fromme?page=0&size=10&username=아이디";
+		String token = Objects.requireNonNull(loginResponseEntity.getBody()).accessToken();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(token);
+		HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+		ParameterizedTypeReference<List<PostResponseDto>> responseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<List<PostResponseDto>> responseEntity = this.restTemplate.exchange(url, HttpMethod.GET,
+			requestEntity,
+			responseType);
+
+		assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+		assertThat(responseEntity.getBody()).isNotNull();
+		assertThat(Objects.requireNonNull(responseEntity.getBody()).get(0).nickname()).isEqualTo("닉네임");
 	}
 
 	@Test
 	void getFromMe() {
-		// @AuthenticationPrincipal UserDetailDto
+		User user = userRepository.save(User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.password("pw")
+			.content("소개문구")
+			.build());
+
+		Post post = postRepository.save(Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.FROM_ME)
+			.reply("답글")
+			.user(user)
+			.build());
+
+		// 로그인 토큰 받기 (@AuthenticationPrincipal UserDetailDto)
+		String loginUrl = "http://localhost:" + this.port + "/api/users/login";
+		LoginRequestDto loginRequestDto = new LoginRequestDto("아이디", "pw");
+		HttpHeaders loginHeaders = new HttpHeaders();
+		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<LoginRequestDto> loginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
+		ParameterizedTypeReference<LoginResponseDto> loginResponseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<LoginResponseDto> loginResponseEntity = this.restTemplate.exchange(loginUrl,
+			HttpMethod.POST,
+			loginRequestEntity, loginResponseType);
+
+		// 받아온 토큰 기반 테스트
+		String url = "http://localhost:" + this.port + "/api/fromme/1?username=아이디";
+		String token = Objects.requireNonNull(loginResponseEntity.getBody()).accessToken();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(token);
+		HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+		ParameterizedTypeReference<PostResponseDto> responseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<PostResponseDto> responseEntity = this.restTemplate.exchange(url, HttpMethod.GET,
+			requestEntity,
+			responseType);
+
+		assertThat(responseEntity.getBody()).isNotNull();
 	}
 
 	@Test
 	void postFromMeLikes() {
-		// @AuthenticationPrincipal UserDetailDto
+		User user = userRepository.save(User.builder()
+			.id(1L)
+			.username("아이디")
+			.nickname("닉네임")
+			.password("pw")
+			.content("소개문구")
+			.build());
+
+		Post post = postRepository.save(Post.builder()
+			.id(1L)
+			.content("내용")
+			.nickname("닉네임")
+			.postType(PostType.FROM_ME)
+			.reply("답글")
+			.user(user)
+			.build());
+
+		// 로그인 토큰 받기 (@AuthenticationPrincipal UserDetailDto)
+		String loginUrl = "http://localhost:" + this.port + "/api/users/login";
+		LoginRequestDto loginRequestDto = new LoginRequestDto("아이디", "pw");
+		HttpHeaders loginHeaders = new HttpHeaders();
+		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<LoginRequestDto> loginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
+		ParameterizedTypeReference<LoginResponseDto> loginResponseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<LoginResponseDto> loginResponseEntity = this.restTemplate.exchange(loginUrl,
+			HttpMethod.POST,
+			loginRequestEntity, loginResponseType);
+
+		// 받아온 토큰 기반 테스트
+		String url = "http://localhost:" + this.port + "/api/fromme/1/likes?username=아이디";
+		String token = Objects.requireNonNull(loginResponseEntity.getBody()).accessToken();
+		HttpHeaders headers = new HttpHeaders();
+		headers.setBearerAuth(token);
+		HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+		ParameterizedTypeReference<PostLikeResponseDto> responseType = new ParameterizedTypeReference<>() {
+		};
+		ResponseEntity<PostLikeResponseDto> responseEntity = this.restTemplate.exchange(url, HttpMethod.POST,
+			requestEntity,
+			responseType);
+
+		assertThat(responseEntity.getBody()).isNotNull();
 	}
 
 	@Test
 	void voteFromMe() {
-		// @AuthenticationPrincipal UserDetailDto
 	}
 
 	@Test
