@@ -11,6 +11,7 @@ import { IFromMe } from '@/apis/fromme/fromme';
 import { getFromMe } from '@/apis/fromme/get-fromme';
 import Login from '@/pages/Login';
 import { patchFromMe } from '@/apis/fromme/vote-fromme';
+import styled from 'styled-components';
 
 type IFeedType = 'toMe' | 'fromMe';
 
@@ -79,15 +80,30 @@ const Feed = () => {
   return (
     <>
       <Tabs tabs={tabs} />
-      {feedType === 'toMe'
-        ? toMeData?.map((tomeItem) => {
+      {feedType === 'toMe' ? (
+        toMeData && toMeData.length > 0 ? (
+          toMeData.map((tomeItem) => {
             return <MoomulCard key={tomeItem.id} data={tomeItem} voteToMe={voteToMe} />;
           })
-        : fromMeData?.map((fromMeItem) => {
-            return <MoomulCard key={fromMeItem.id} data={fromMeItem} voteToMe={voteFromMe} />;
-          })}
+        ) : (
+          <NoContent>게시글이 없어요:)</NoContent>
+        )
+      ) : fromMeData && fromMeData.length > 0 ? (
+        fromMeData.map((fromMeItem) => {
+          return <MoomulCard key={fromMeItem.id} data={fromMeItem} voteToMe={voteFromMe} />;
+        })
+      ) : (
+        <NoContent>게시글이 없어요:)</NoContent>
+      )}
     </>
   );
 };
+
+const NoContent = styled.div`
+  width: 100%;
+  text-align: center;
+  padding: 50px;
+  color: ${({ theme }) => theme.LIGHT_BLACK};
+`;
 
 export default Feed;

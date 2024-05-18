@@ -6,6 +6,7 @@ import App from '@/App';
 import Home from '@/pages/Home';
 import Signup from '@/pages/Signup';
 import Login from '@/pages/Login';
+import Write from '@/pages/Write';
 import PrivateRoutes from './PrivateRoutes';
 
 const routes: RouteObject[] = [
@@ -27,6 +28,10 @@ const routes: RouteObject[] = [
       {
         path: '/signup',
         element: <Signup />,
+      },
+      {
+        path: '/:username/write',
+        element: <Write />,
       },
     ],
   },

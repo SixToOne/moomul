@@ -4,17 +4,16 @@ import ImageEditor from '@/molecules/ImageEditor';
 import Button from '@/components/atoms/Button';
 import { getUserProfile } from '@/apis/user/get-user';
 import { IUserProfile } from '@/apis/user/user';
-import { useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import userSessionAtom from '@/recoil/atoms/userSession';
 import { useRecoilValue } from 'recoil';
 import Login from '@/pages/Login';
 import { postFromMe } from '@/apis/fromme/post-fromme';
+import { useUsername } from '@/hooks/useUsername';
 
 const Profile = () => {
-  const { pathname } = useLocation();
   const userSession = useRecoilValue(userSessionAtom);
-  const username = userSession?.username || pathname.replace('/', '');
-
+  const username = useUsername();
   const [userProfileData, setUserProfileData] = useState<IUserProfile>();
 
   const fetchData = async () => {
@@ -49,7 +48,13 @@ const Profile = () => {
             </div>
           </div>
           <div>
-            <Button content={'무물 남기기'} onClick={() => console.log('button')} fontSize="14px" />
+            <Link to={`/${username}/write`}>
+              <Button
+                content={'무물 남기기'}
+                onClick={() => console.log('button')}
+                fontSize="14px"
+              />
+            </Link>
           </div>
         </div>
       </div>
