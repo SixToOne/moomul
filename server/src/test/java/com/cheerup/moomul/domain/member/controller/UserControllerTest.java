@@ -24,6 +24,8 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
+import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
@@ -108,8 +110,6 @@ class UserControllerTest {
 	@Test
 	void profile() {
 		//Given
-		// boolean isMine = false;
-		System.out.println("accessToken: " + accessToken);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		headers.setBearerAuth(accessToken);
@@ -132,6 +132,24 @@ class UserControllerTest {
 
 	@Test
 	void idCheck() {
+		//Given
+		IdCheckRequestDto idCheckRequestDto = new IdCheckRequestDto("hasNotName");
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<IdCheckRequestDto> idCheckEntity = new HttpEntity<>(idCheckRequestDto, headers);
+
+		//when
+		ResponseEntity<IdCheckResponseDto> response = restTemplate.exchange(
+			"/users/id-check",
+			HttpMethod.POST,
+			idCheckEntity,
+			new ParameterizedTypeReference<IdCheckResponseDto>() {
+			}
+		);
+
+		// Then
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertThat(Objects.requireNonNull(response.getBody()).isValid()).isEqualTo(true);
 	}
 
 	@Test
