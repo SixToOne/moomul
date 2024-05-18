@@ -2,16 +2,20 @@ package com.cheerup.moomul.domain.member.controller;
 
 import static org.assertj.core.api.AssertionsForClassTypes.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.testcontainers.containers.localstack.LocalStackContainer.Service.*;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
 
+import org.junit.Rule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -19,15 +23,25 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.reactive.function.BodyInserters;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.localstack.LocalStackContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.utility.DockerImageName;
 
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.client.builder.AwsClientBuilder;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.cheerup.moomul.domain.member.entity.IdCheckRequestDto;
 import com.cheerup.moomul.domain.member.entity.IdCheckResponseDto;
 import com.cheerup.moomul.domain.member.entity.LoginRequestDto;
 import com.cheerup.moomul.domain.member.entity.LoginResponseDto;
+import com.cheerup.moomul.domain.member.entity.ProfileModifyRequestDto;
 import com.cheerup.moomul.domain.member.entity.ProfileResponseDto;
 import com.cheerup.moomul.domain.member.entity.SignUpDto;
 import com.cheerup.moomul.domain.member.entity.User;
@@ -39,6 +53,11 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 class UserControllerTest {
 
 	@Autowired
+	private WebClient.Builder webClientBuilder;
+
+	WebClient webClient;
+
+	@Autowired
 	TestRestTemplate restTemplate;
 
 	@Autowired
@@ -48,12 +67,38 @@ class UserControllerTest {
 	public static GenericContainer<?> redis =
 		new GenericContainer<>(DockerImageName.parse("redis:6.2.6"));
 
+	@Rule
+	public LocalStackContainer localStack = new LocalStackContainer(
+		DockerImageName.parse("localstack/localstack:0.11.3"))
+		.withServices(S3);
+
+	@LocalServerPort
+	private int port;
+
 	static String accessToken;
 
 	@BeforeEach
 	void setUp() {
-		redis.start();
+		this.webClient = webClientBuilder.baseUrl("http://localhost:" + port).build();
 
+		redis.start();
+		localStack.start();
+
+		AmazonS3 s3 = AmazonS3ClientBuilder
+			.standard()
+			.withEndpointConfiguration(
+				new AwsClientBuilder.EndpointConfiguration(
+					localStack.getEndpoint().toString(),
+					localStack.getRegion()
+				)
+			)
+			.withCredentials(
+				new AWSStaticCredentialsProvider(
+					new BasicAWSCredentials(localStack.getAccessKey(), localStack.getSecretKey())
+				)
+			)
+			.build();
+		// s3.createBucket(CreateBucketRequest.builder().bucket("togeduck").build());
 		List<User> users = List.of(User.builder()
 				.id(1L)
 				.username("늘보")
@@ -154,9 +199,50 @@ class UserControllerTest {
 
 	@Test
 	void modifyProfile() {
+		//Given
+		ProfileModifyRequestDto profileModifyRequestDto = new ProfileModifyRequestDto("ImComputer", "testing");
+
+		//When
+		ProfileResponseDto response = webClient.patch()
+			.uri(uriBuilder -> uriBuilder.path("/api/users/profile")
+				.queryParam("username", "computer")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(BodyInserters.fromValue(profileModifyRequestDto))
+			.retrieve()
+			.bodyToMono(ProfileResponseDto.class)
+			.block();
+
+		// Then
+		assertNotNull(response);
+		assertEquals("ImComputer", response.nickname());
+		assertEquals("testing", response.content());
+
 	}
 
 	@Test
 	void modifyProfileImage() {
+
+		// Given
+		MockMultipartFile imageFile = new MockMultipartFile(
+			"testImage", "image.jpg", MediaType.IMAGE_JPEG_VALUE,
+			"Test Image Content".getBytes(StandardCharsets.UTF_8));
+
+		// When
+		ProfileResponseDto response = webClient.patch()
+			.uri(uriBuilder -> uriBuilder.path("/api/users/profile/images")
+				.queryParam("username", "computer")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.contentType(MediaType.MULTIPART_FORM_DATA)
+			.body(BodyInserters.fromMultipartData("image", imageFile.getResource()))
+			.retrieve()
+			.bodyToMono(ProfileResponseDto.class)
+			.block();
+
+		// Then
+		assertNotNull(response);
+		assertNotNull(response.image());
 	}
 }
