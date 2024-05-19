@@ -3,9 +3,13 @@ import { useRecoilValue } from 'recoil';
 import { styled } from 'styled-components';
 import { Link } from 'react-router-dom';
 import userSessionAtom from '@/recoil/atoms/userSession';
+import { useUsername } from '@/hooks/useUsername';
 
 const Header = () => {
   const userSession = useRecoilValue(userSessionAtom);
+  const username = useUsername();
+
+  if (!userSession && !username) return null; // landing
 
   return (
     <StyledHeader>
