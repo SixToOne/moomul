@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRecoilValue } from 'recoil';
-import { Link, Navigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import LoginForm from '@/organisms/LoginForm';
 import userSessionAtom from '@/recoil/atoms/userSession';
 
@@ -12,7 +12,6 @@ const Login = () => {
   return (
     <>
       <LoginForm />
-      <Link to="/signup">회원가입</Link>
     </>
   );
 };

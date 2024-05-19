@@ -23,10 +23,12 @@ const SignupForm = () => {
 
   const handleClickSignupButton = async () => {
     const data = await postSignup(signupFormData);
-    if (data) {
-      alert('회원가입 성공:), 로그인 해주세요.');
-      navigate('/login');
-    }
+    alert('회원가입 성공:), 로그인 해주세요.');
+    navigate('/login');
+    // if (data) {
+    //   alert('회원가입 성공:), 로그인 해주세요.');
+    //   navigate('/login');
+    // }
   };
 
   const handleClickCheckUsernameDuplication = async () => {
@@ -56,7 +58,9 @@ const SignupForm = () => {
           handleInput={(e) => getSignupFormValue(e, 'nickname')}
         />
       </div>
-      <Button content={'회원가입'} onClick={handleClickSignupButton} />
+      <ButtonWrapper>
+        <Button content={'회원가입'} onClick={handleClickSignupButton} />
+      </ButtonWrapper>
     </StyledSignupForm>
   );
 };
@@ -76,6 +80,13 @@ const StyledSignupForm = styled.form`
   .login-form__input-username {
     display: flex;
     gap: 16px;
+  }
+`;
+
+const ButtonWrapper = styled.div`
+  height: 36px;
+  button {
+    height: 100%;
   }
 `;
 

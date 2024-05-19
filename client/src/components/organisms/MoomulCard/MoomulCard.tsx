@@ -1,17 +1,55 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import Progress from '@/atoms/Progress';
 import { styled } from 'styled-components';
 import { IToMe } from '@/apis/tome/tome';
 import { getPercentage } from '@/utils/get-percentage';
 import { getFormattedYearMonthDayTime } from '@/utils/time';
-import Icon from '@/components/atoms/Icon';
+import Icon from '@/atoms/Icon';
+import Input from '@/components/atoms/Input';
+import Button from '@/components/atoms/Button';
+import { useUsername } from '@/hooks/useUsername';
 
 interface MoomulCardProps {
   data: IToMe;
   voteToMe: (tomeId: number, optionId: number) => Promise<void>;
+  reply: (username: string, tomeId: number, reply: string) => Promise<void>;
+  refetch: () => Promise<void>;
 }
 
-const MoomulCard = ({ data, voteToMe }: MoomulCardProps) => {
+const MoomulCard = ({ data, voteToMe, reply, refetch }: MoomulCardProps) => {
+  const [replyMode, setReplyMode] = useState<boolean>(false);
+  const [replyContent, setReplyContent] = useState<string>('');
+  const username = useUsername();
+
+  const ReplyMode = useCallback(() => {
+    if (replyMode) {
+      return (
+        <div>
+          <Input
+            label={'무물 답변 달기'}
+            name={'reply'}
+            handleInput={(e) => {
+              const value = e.currentTarget.value;
+              console.log(value);
+              setReplyContent(() => value);
+            }}
+          />
+          <ReplyButtons>
+            <Button
+              content={'등록'}
+              onClick={() => {
+                reply(username, data.id, replyContent);
+                refetch();
+              }}
+            />
+            <Button content={'취소'} onClick={() => setReplyMode(false)} />
+          </ReplyButtons>
+        </div>
+      );
+    }
+    return <ReplyButton onClick={() => setReplyMode(true)}>무물 답변 달기</ReplyButton>;
+  }, [replyMode]);
+
   return (
     <StyledMoomulCard>
       <div className="moomul-card__info">
@@ -23,20 +61,23 @@ const MoomulCard = ({ data, voteToMe }: MoomulCardProps) => {
       <div className="moomul-card__content">
         <span>{data.content}</span>
       </div>
-      <div className="moomul-card__vote-form">
-        {data.options.map((option) => {
-          return (
-            <button key={option.id} onClick={() => voteToMe(data.id, option.id)}>
-              <Progress
-                max={100}
-                value={getPercentage(data.voteCnt, option.voteCnt)}
-                content={option.content}
-                color={data.voted ? 'primary' : 'gray'}
-              />
-            </button>
-          );
-        })}
-      </div>
+      {data.options.length > 0 && (
+        <div className="moomul-card__vote-form">
+          {data.options.map((option) => {
+            return (
+              <button key={option.id} onClick={() => voteToMe(data.id, option.id)}>
+                <Progress
+                  max={100}
+                  value={getPercentage(data.voteCnt, option.voteCnt)}
+                  content={option.content}
+                  color={data.voted ? 'primary' : 'gray'}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <Reply>{data.reply ? data.reply : <ReplyMode />}</Reply>
       {data.options.length > 0 && (
         <div className="moomul-card__vote-count">{data.voteCnt}명 투표</div>
       )}
@@ -50,6 +91,27 @@ const MoomulCard = ({ data, voteToMe }: MoomulCardProps) => {
     </StyledMoomulCard>
   );
 };
+
+const Reply = styled.div`
+  border-left: 3px solid ${({ theme }) => theme.PRIMARY};
+  padding: 10px;
+  margin-bottom: 5px;
+`;
+
+const ReplyButton = styled.button`
+  font-size: 16px;
+  color: ${({ theme }) => theme.LIGHT_BLACK};
+  border: 1px solid ${({ theme }) => theme.BORDER_LIGHT};
+  padding: 4px;
+  border-radius: 3px;
+`;
+
+const ReplyButtons = styled.div`
+  display: flex;
+  height: 22px;
+  gap: 6px;
+  margin-top: 10px;
+`;
 
 const StyledMoomulCard = styled.div`
   padding: 24px;
@@ -77,6 +139,7 @@ const StyledMoomulCard = styled.div`
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin-bottom: 16px;
   }
 
   .moomul-card__vote-count {

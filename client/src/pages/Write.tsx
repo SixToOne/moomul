@@ -2,12 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { postToMe } from '@/apis/tome/post-tome';
 import Button from '@/atoms/Button';
 import styled from 'styled-components';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useUsername } from '@/hooks/useUsername';
 import { useRecoilValue } from 'recoil';
 import userSessionAtom from '@/recoil/atoms/userSession';
-import { INewFromMe, postFromMe } from '@/apis/fromme/post-fromme';
-import { INewToMe } from '@/apis/tome/tome';
+import { postFromMe } from '@/apis/fromme/post-fromme';
 
 /**
  * 나의 피드 -> frome me
@@ -61,13 +60,13 @@ const Write = () => {
       {options.map((option, index) => {
         return (
           <Poll key={index}>
-            <button
+            <DeleteButton
               onClick={() => {
                 setOptions((prevOptions) => prevOptions.filter((_, i) => i !== index));
               }}
             >
               X
-            </button>
+            </DeleteButton>
             <Input
               onChange={(e) => {
                 const newValue = e.currentTarget.value;
@@ -128,11 +127,16 @@ const Poll = styled.div`
 const AddButton = styled.button`
   width: 24px;
   height: 24px;
-  font-size: 20px;
+  padding-bottom: 3px;
+  font-size: 16px;
   border-radius: 100%;
   background-color: ${({ theme }) => theme.PRIMARY};
   color: white;
   margin: auto;
+`;
+
+const DeleteButton = styled.button`
+  color: black;
 `;
 
 export default Write;

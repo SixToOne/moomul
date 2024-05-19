@@ -12,7 +12,6 @@ const Signup = () => {
   return (
     <>
       <SignupForm />
-      <Link to="/login">로그인</Link>
     </>
   );
 };
