@@ -33,6 +33,7 @@ import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
+import com.cheerup.moomul.domain.post.dto.PostLikeResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
 import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
@@ -301,6 +302,24 @@ class ToMeControllerTest {
 				assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
 			})
 			.block();
+	}
+
+	@Test
+	void postToMeLikes() {
+
+		// When
+		PostLikeResponseDto response = webClient.post()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/1/likes")
+				.queryParam("username", "늘보")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.retrieve()
+			.bodyToMono(PostLikeResponseDto.class)
+			.block();
+
+		// Then
+		assertNotNull(response);
+		assertEquals(1L, response.likeCnt());
 
 	}
 
