@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -20,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.transaction.AfterTransaction;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -30,6 +32,7 @@ import com.cheerup.moomul.domain.member.entity.User;
 import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
+import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostType;
@@ -46,6 +49,11 @@ class ToMeControllerTest {
 	public static MySQLContainer<?> mysqlContainer = new MySQLContainer<>("mysql:8.0.3");
 
 	@Autowired
+	private WebClient.Builder webClientBuilder;
+
+	WebClient webClient;
+
+	@Autowired
 	PostRepository postRepository;
 
 	@Autowired
@@ -57,8 +65,15 @@ class ToMeControllerTest {
 	@Autowired
 	TestRestTemplate restTemplate;
 
+	static String accessToken;
+
+	@LocalServerPort
+	private int port;
+
 	@BeforeEach
 	void setUp() {
+		this.webClient = webClientBuilder.baseUrl("http://localhost:" + port).build();
+
 		User user = User.builder()
 			.id(1L)
 			.username("늘보")
@@ -98,6 +113,22 @@ class ToMeControllerTest {
 		);
 
 		commentRepository.saveAll(comments);
+
+		//로그인
+		LoginRequestDto loginRequestDto = new LoginRequestDto("computer", "computer");
+		HttpHeaders loginHeaders = new HttpHeaders();
+		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<LoginRequestDto> LoginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
+
+		ResponseEntity<LoginResponseDto> login = restTemplate.exchange(
+			"/users/login",
+			HttpMethod.POST,
+			LoginRequestEntity,
+			new ParameterizedTypeReference<LoginResponseDto>() {
+			}
+		);
+
+		accessToken = login.getBody().accessToken();
 	}
 
 	@Test
@@ -118,25 +149,11 @@ class ToMeControllerTest {
 
 	@Test
 	void postComments() {
-		//Given
-		LoginRequestDto loginRequestDto = new LoginRequestDto("늘보", "늘보");
-		HttpHeaders loginHeaders = new HttpHeaders();
-		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
-		HttpEntity<LoginRequestDto> LoginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
 
-		ResponseEntity<LoginResponseDto> login = restTemplate.exchange(
-			"/users/login",
-			HttpMethod.POST,
-			LoginRequestEntity,
-			new ParameterizedTypeReference<LoginResponseDto>() {
-			}
-		);
-
-		String userToken = login.getBody().accessToken();
 		CommentRequestDto comment = new CommentRequestDto(
 			null, "댓글작성");
 		HttpHeaders headers = new HttpHeaders();
-		headers.setBearerAuth(userToken);
+		headers.setBearerAuth(accessToken);
 		HttpEntity<CommentRequestDto> requestEntity = new HttpEntity<>(comment, headers);
 
 		//when
@@ -152,4 +169,19 @@ class ToMeControllerTest {
 		assertEquals(HttpStatus.ACCEPTED, response.getStatusCode());
 		assertThat(Objects.requireNonNull(response.getBody()).size()).isEqualTo(3);
 	}
+
+	@Test
+	void postToMe() {
+		//Given
+		PostRequestDto postRequestDto = new PostRequestDto("testNick", "testing", List.of("1", "2", "3"));
+
+		//When
+		ResponseEntity<Void> response = restTemplate.postForEntity("/tome?username=늘보", postRequestDto, Void.class);
+
+		// Then
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNotNull(response);
+
+	}
+
 }
