@@ -245,6 +245,23 @@ class ToMeControllerTest {
 	}
 
 	@Test
+	void getToMe() {
+		// When
+		PostResponseDto response = webClient.get()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/1")
+				.queryParam("username", "늘보")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.retrieve()
+			.bodyToMono(PostResponseDto.class)
+			.block();
+
+		//Then
+		assertNotNull(response);
+
+	}
+
+	@Test
 	void voteToMe() {
 		//Given
 		VoteRequestDto voteRequestDto = new VoteRequestDto(1L);
