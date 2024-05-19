@@ -19,10 +19,14 @@ const Write = () => {
   const userSession = useRecoilValue(userSessionAtom);
 
   const username = useUsername();
-  const [isMyFeed, setIsMyFeed] = useState<boolean>(username === userSession?.username);
+  const [isMyFeed, setIsMyFeed] = useState<boolean>(false);
   const [nickname, setNickname] = useState<string>('');
   const [content, setContent] = useState<string>('');
   const [options, setOptions] = useState<string[]>([]);
+
+  useEffect(() => {
+    setIsMyFeed(username === userSession?.username);
+  }, [username, userSession]);
 
   const handleClick = async () => {
     if (isMyFeed) {
@@ -51,6 +55,32 @@ const Write = () => {
           onChange={(e) => setContent(e.currentTarget.value)}
         />
       </div>
+
+      <AddButton onClick={() => setOptions((prev) => [...prev, ''])}>+</AddButton>
+
+      {options.map((option, index) => {
+        return (
+          <Poll key={index}>
+            <button
+              onClick={() => {
+                setOptions((prevOptions) => prevOptions.filter((_, i) => i !== index));
+              }}
+            >
+              X
+            </button>
+            <Input
+              onChange={(e) => {
+                const newValue = e.currentTarget.value;
+                setOptions((prev) => {
+                  const newOptions = [...prev];
+                  newOptions[index] = newValue;
+                  return newOptions;
+                });
+              }}
+            />
+          </Poll>
+        );
+      })}
       {isMyFeed ? (
         <WriteInfo>모든 방문자가 투표할 수 있습니다.</WriteInfo>
       ) : (
@@ -77,14 +107,32 @@ const WriteInfo = styled.span`
 const TextArea = styled.textarea`
   border: none;
   width: 100%;
-  min-height: 100px;
-  border-bottom: 1px solid ${({ theme }) => theme.BORDER_LIGHT};
+  font-size: 16px;
+  padding: 0;
 `;
 
 const Input = styled.input`
+  width: 100%;
+  height: 20px;
+  font-size: 20px;
   border: none;
   border-radius: 0;
   border-bottom: 1px solid ${({ theme }) => theme.BORDER_LIGHT};
+`;
+
+const Poll = styled.div`
+  display: flex;
+  width: 100%;
+`;
+
+const AddButton = styled.button`
+  width: 24px;
+  height: 24px;
+  font-size: 20px;
+  border-radius: 100%;
+  background-color: ${({ theme }) => theme.PRIMARY};
+  color: white;
+  margin: auto;
 `;
 
 export default Write;
