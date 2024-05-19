@@ -105,7 +105,7 @@ class CommentRepositoryTest {
 	void findCommentByPostId() {
 		PostCommentRequestParam param = new PostCommentRequestParam(1L, 1L, 1);
 		List<CommentResponseDto> comment = commentRepository.findCommentByPostId(1L, param);
-		System.out.println(comment.get(0).toString());
+		// System.out.println(comment.get(0).toString());
 		assertThat(comment.size()).isEqualTo(2);
 		assertThat(comment).isNotEmpty();
 	}
