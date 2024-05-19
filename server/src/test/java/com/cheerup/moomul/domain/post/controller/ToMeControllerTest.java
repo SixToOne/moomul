@@ -97,12 +97,21 @@ class ToMeControllerTest {
 		userRepository.save(user);
 
 		List<Post> posts = List.of(Post.builder()
-			.id(1L)
-			.nickname("늘보")
-			.user(user)
-			.content("[ToMe]너 잠꾸러기니")
-			.postType(PostType.TO_ME)
-			.build());
+				.id(1L)
+				.nickname("늘보")
+				.user(user)
+				.content("[ToMe]너 잠꾸러기니")
+				.postType(PostType.TO_ME)
+				.build(),
+
+			Post.builder()
+				.id(2L)
+				.nickname("늘보")
+				.user(user)
+				.content("고생해")
+				.postType(PostType.TO_ME)
+				.build()
+		);
 
 		postRepository.saveAll(posts);
 
@@ -214,10 +223,11 @@ class ToMeControllerTest {
 
 	}
 
+	/*TODO*/
 	@Test
 	void getRepliedToMe() {
 
-		// When - 아직 안됨 Test
+		// When
 		List<PostResponseDto> response = webClient.get()
 			.uri(uriBuilder -> uriBuilder.path("/api/tome/replied")
 				.queryParam("username", "늘보")
@@ -232,7 +242,6 @@ class ToMeControllerTest {
 
 		// Then
 		assertThat(response).isNotNull();
-
 	}
 
 	@Test
