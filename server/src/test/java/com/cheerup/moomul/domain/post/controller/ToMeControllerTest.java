@@ -21,6 +21,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.transaction.AfterTransaction;
+import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -33,11 +34,16 @@ import com.cheerup.moomul.domain.member.repository.UserRepository;
 import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
+import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
+import com.cheerup.moomul.domain.post.entity.Option;
 import com.cheerup.moomul.domain.post.entity.Post;
 import com.cheerup.moomul.domain.post.entity.PostType;
 import com.cheerup.moomul.domain.post.repository.CommentRepository;
+import com.cheerup.moomul.domain.post.repository.OptionRepository;
 import com.cheerup.moomul.domain.post.repository.PostRepository;
+import com.cheerup.moomul.domain.post.repository.VoteRepository;
 
 @Testcontainers
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,6 +67,12 @@ class ToMeControllerTest {
 
 	@Autowired
 	CommentRepository commentRepository;
+
+	@Autowired
+	OptionRepository optionRepository;
+
+	@Autowired
+	VoteRepository voteRepository;
 
 	@Autowired
 	TestRestTemplate restTemplate;
@@ -94,6 +106,20 @@ class ToMeControllerTest {
 
 		postRepository.saveAll(posts);
 
+		List<Option> options = List.of(Option.builder()
+				.id(1L)
+				.content("option1")
+				.post(posts.get(0))
+				.build(),
+
+			Option.builder()
+				.id(2L)
+				.content("option2")
+				.post(posts.get(0))
+				.build());
+
+		optionRepository.saveAll(options);
+
 		List<Comment> comments = List.of(
 			Comment.builder()
 				.id(1L)
@@ -114,8 +140,12 @@ class ToMeControllerTest {
 
 		commentRepository.saveAll(comments);
 
+		//ToMe생성
+		PostRequestDto postRequestDto = new PostRequestDto("testNick", "testing", List.of("1", "2", "3"));
+		ResponseEntity<Void> response = restTemplate.postForEntity("/tome?username=늘보", postRequestDto, Void.class);
+
 		//로그인
-		LoginRequestDto loginRequestDto = new LoginRequestDto("computer", "computer");
+		LoginRequestDto loginRequestDto = new LoginRequestDto("늘보", "늘보");
 		HttpHeaders loginHeaders = new HttpHeaders();
 		loginHeaders.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<LoginRequestDto> LoginRequestEntity = new HttpEntity<>(loginRequestDto, loginHeaders);
@@ -181,6 +211,49 @@ class ToMeControllerTest {
 		// Then
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertNotNull(response);
+
+	}
+
+	@Test
+	void getRepliedToMe() {
+
+		// When - 아직 안됨 Test
+		List<PostResponseDto> response = webClient.get()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/replied")
+				.queryParam("username", "늘보")
+				.queryParam("page", 0)
+				.queryParam("size", 10)
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.retrieve()
+			.bodyToFlux(PostResponseDto.class)
+			.collectList()
+			.block();
+
+		// Then
+		assertThat(response).isNotNull();
+
+	}
+
+	@Test
+	void voteToMe() {
+		//Given
+		VoteRequestDto voteRequestDto = new VoteRequestDto(1L);
+
+		// When
+		PostResponseDto response = webClient.patch()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/1/votes")
+				.queryParam("username", "늘보")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(BodyInserters.fromValue(voteRequestDto))
+			.retrieve()
+			.bodyToMono(PostResponseDto.class)
+			.block();
+
+		assertNotNull(response);
+		assertEquals(1L, response.voted());
 
 	}
 
