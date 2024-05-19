@@ -262,6 +262,24 @@ class ToMeControllerTest {
 	}
 
 	@Test
+	void deleteToMe() {
+		// When
+		WebClient.ResponseSpec responseSpec = webClient.delete()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/1")
+				.queryParam("username", "늘보")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.retrieve();
+
+		// Then
+		responseSpec.toBodilessEntity()
+			.doOnSuccess(response -> {
+				assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+			})
+			.block();
+	}
+
+	@Test
 	void voteToMe() {
 		//Given
 		VoteRequestDto voteRequestDto = new VoteRequestDto(1L);
