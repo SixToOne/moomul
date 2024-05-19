@@ -35,6 +35,7 @@ import com.cheerup.moomul.domain.post.dto.CommentRequestDto;
 import com.cheerup.moomul.domain.post.dto.CommentResponseDto;
 import com.cheerup.moomul.domain.post.dto.PostRequestDto;
 import com.cheerup.moomul.domain.post.dto.PostResponseDto;
+import com.cheerup.moomul.domain.post.dto.ReplyRequestDto;
 import com.cheerup.moomul.domain.post.dto.VoteRequestDto;
 import com.cheerup.moomul.domain.post.entity.Comment;
 import com.cheerup.moomul.domain.post.entity.Option;
@@ -277,6 +278,30 @@ class ToMeControllerTest {
 				assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
 			})
 			.block();
+	}
+
+	@Test
+	void postReplies() {
+		//Given
+		ReplyRequestDto replyRequestDto = new ReplyRequestDto("replyTest");
+
+		// When
+		WebClient.ResponseSpec responseSpec = webClient.post()
+			.uri(uriBuilder -> uriBuilder.path("/api/tome/1/replies")
+				.queryParam("username", "늘보")
+				.build())
+			.header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+			.contentType(MediaType.APPLICATION_JSON)
+			.body(BodyInserters.fromValue(replyRequestDto))
+			.retrieve();
+
+		// Then
+		responseSpec.toBodilessEntity()
+			.doOnSuccess(response -> {
+				assertThat(response.getStatusCode().is2xxSuccessful()).isTrue();
+			})
+			.block();
+
 	}
 
 	@Test
