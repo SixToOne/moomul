@@ -14,9 +14,10 @@ interface MoomulCardProps {
   voteToMe: (tomeId: number, optionId: number) => Promise<void>;
   reply: (username: string, tomeId: number, reply: string) => Promise<void>;
   refetch: () => void;
+  t: boolean;
 }
 
-const MoomulCard = ({ data, voteToMe, reply, refetch }: MoomulCardProps) => {
+const MoomulCard = ({ data, voteToMe, reply, refetch, t }: MoomulCardProps) => {
   const [replyMode, setReplyMode] = useState<boolean>(false);
   const [replyContent, setReplyContent] = useState<string>('');
   const [sendMode, setSendMode] = useState<boolean>(false);
@@ -81,7 +82,7 @@ const MoomulCard = ({ data, voteToMe, reply, refetch }: MoomulCardProps) => {
           })}
         </div>
       )}
-      <Reply>{data.reply ? data.reply : <ReplyMode />}</Reply>
+      {t && <Reply>{data.reply ? data.reply : <ReplyMode />}</Reply>}
       {data.options.length > 0 && (
         <div className="moomul-card__vote-count">{data.voteCnt}명 투표</div>
       )}

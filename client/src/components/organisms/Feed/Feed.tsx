@@ -111,6 +111,7 @@ const Feed = () => {
                 voteToMe={voteToMe}
                 reply={postReplyTome}
                 refetch={fetchToMeData}
+                t={true}
               />
             );
           })
@@ -127,6 +128,7 @@ const Feed = () => {
                 voteToMe={voteFromMe}
                 reply={postReplyTome}
                 refetch={fetchFromMeData}
+                t={false}
               />
             );
           })
@@ -146,6 +148,7 @@ const Feed = () => {
                   alert('답변이 등록되었습니다.');
                   setFeedType('toMe');
                 }}
+                t={true}
               />
             );
           })
