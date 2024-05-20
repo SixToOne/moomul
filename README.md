@@ -53,10 +53,10 @@
               <img src="https://avatars.githubusercontent.com/u/76727102?v=4" width="100">
         </td>
         <td style="min-width: 250px;">
-              <img src="https://avatars.githubusercontent.com/u/100259486?v=4" width="100">
+              <img src="https://avatars.githubusercontent.com/u/88070657?v=4" width="100">        
         </td>
         <td style="min-width: 250px;">
-              <img src="https://avatars.githubusercontent.com/u/65287117?v=4" width="100">
+              <img src="https://avatars.githubusercontent.com/u/59395755?v=4" width="100">        
         </td>
     </tr>
     <tr align="center">
@@ -96,13 +96,13 @@ Jmeter 를 통한 TPS 측정
     </tr>
     <tr align="center">
         <td style="min-width: 250px;">
-              <img src="https://avatars.githubusercontent.com/u/88070657?v=4" width="100">
+              <img src="https://avatars.githubusercontent.com/u/100259486?v=4" width="100">
         </td>
         <td style="min-width: 250px;">
               <img src="https://avatars.githubusercontent.com/u/137035446?v=4" width="100">
         </td>
         <td style="min-width: 250px;">
-              <img src="https://avatars.githubusercontent.com/u/59395755?v=4" width="100">
+              <img src="https://avatars.githubusercontent.com/u/65287117?v=4" width="100">
         </td>
     </tr>
     <tr align="center">
