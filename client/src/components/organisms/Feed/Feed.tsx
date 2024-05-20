@@ -51,7 +51,8 @@ const Feed = () => {
   const fetchNotAnswerData = async () => {
     if (!username) return;
     const data = await getNotRepliedToMe(username, 0, 10);
-    setNotAnswerData(data);
+
+    setNotAnswerData(() => [...data]);
   };
 
   const fetchToMeData = async () => {
@@ -141,7 +142,10 @@ const Feed = () => {
                 data={fromMeItem}
                 voteToMe={voteFromMe}
                 reply={postReplyTome}
-                refetch={fetchNotAnswerData}
+                refetch={() => {
+                  alert('답변이 등록되었습니다.');
+                  setFeedType('toMe');
+                }}
               />
             );
           })

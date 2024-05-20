@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import Progress from '@/atoms/Progress';
 import { styled } from 'styled-components';
 import { IToMe } from '@/apis/tome/tome';
@@ -13,13 +13,24 @@ interface MoomulCardProps {
   data: IToMe;
   voteToMe: (tomeId: number, optionId: number) => Promise<void>;
   reply: (username: string, tomeId: number, reply: string) => Promise<void>;
-  refetch: () => Promise<void>;
+  refetch: () => void;
 }
 
 const MoomulCard = ({ data, voteToMe, reply, refetch }: MoomulCardProps) => {
   const [replyMode, setReplyMode] = useState<boolean>(false);
   const [replyContent, setReplyContent] = useState<string>('');
+  const [sendMode, setSendMode] = useState<boolean>(false);
   const username = useUsername();
+
+  useEffect(() => {
+    if (!sendMode) return;
+    reply(username, data.id, replyContent);
+    refetch();
+  }, [sendMode, username, data.id, replyContent]);
+
+  const handleClick = () => {
+    setSendMode(true);
+  };
 
   const ReplyMode = useCallback(() => {
     if (replyMode) {
@@ -30,18 +41,11 @@ const MoomulCard = ({ data, voteToMe, reply, refetch }: MoomulCardProps) => {
             name={'reply'}
             handleInput={(e) => {
               const value = e.currentTarget.value;
-              console.log(value);
               setReplyContent(() => value);
             }}
           />
           <ReplyButtons>
-            <Button
-              content={'등록'}
-              onClick={() => {
-                reply(username, data.id, replyContent);
-                refetch();
-              }}
-            />
+            <Button content={'등록'} onClick={handleClick} />
             <Button content={'취소'} onClick={() => setReplyMode(false)} />
           </ReplyButtons>
         </div>
