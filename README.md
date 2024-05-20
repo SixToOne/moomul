@@ -38,14 +38,14 @@
             </a> 
         </td>
         <td style="min-width: 250px;">
-            <a href="https://github.com/nahokyun">
-              <b>나호균</b>
-            </a>
+            <a href="https://github.com/Seongeuniii">
+              <b>김성은</b>
+            </a>        
         </td>
         <td style="min-width: 250px;">
-            <a href="https://github.com/barded1998">
-              <b>차재환</b>
-            </a>
+            <a href="https://github.com/DeveloperYard">
+              <b>김승우</b>
+            </a>        
         </td>
     </tr>
     <tr align="center">
@@ -61,7 +61,7 @@
     </tr>
     <tr align="center">
         <td>
-        <b>Leader, Backend</b><br>댓글 생성 및 가져오기<br/>
+        <b>Team Leader & Backend</b><br>댓글 생성 및 가져오기<br/>
 코드 품질 관리 (Testing)<br/>
 Jmeter 를 통한 TPS 측정
         <br/>
@@ -79,8 +79,8 @@ Jmeter 를 통한 TPS 측정
   <tr>
     <tr align="center">
         <td style="min-width: 250px;">
-            <a href="https://github.com/Seongeuniii">
-              <b>김성은</b>
+            <a href="https://github.com/nahokyun">
+              <b>나호균</b>
             </a>
         </td>
         <td style="min-width: 250px;">
@@ -89,8 +89,8 @@ Jmeter 를 통한 TPS 측정
             </a>
         </td>
         <td style="min-width: 250px;">
-            <a href="https://github.com/DeveloperYard">
-              <b>김승우</b>
+            <a href="https://github.com/barded1998">
+              <b>차재환</b>
             </a>
         </td>
     </tr>
@@ -110,10 +110,10 @@ Jmeter 를 통한 TPS 측정
         <b>Frontend</b><br>
         </td>
         <td>
-        <b>Backend</b><br>ToMe와 FromMe 답글 달기/투표/삭제/좋아요 API 구현<br>
-        Post/Option/Vote/PostLike repository 통합테스트 작성<br>
-        답글 달기/투표/삭제/좋아요 service 단위테스트 작성<br>
-        FromMeControllerTest 통합테스트 작성
+        <b>Backend</b><br>ToMe와 FromMe 답글/투표/삭제/좋아요 API 구현<br>
+        Post/Option/Vote/PostLike repository 통합테스트<br>
+        ToMe와 FromMe 답글/투표/삭제/좋아요 service 단위테스트<br>
+        FromMe controller 통합테스트
         </td>
         <td>
         <b>Infra</b><br>Nginx 설정<br/> Jenkins CI&CD 파이프라인 작성<br/>EKS 쿠버네티스 환경 구성
@@ -130,7 +130,7 @@ Jmeter 를 통한 TPS 측정
 
 <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black" width="auto" height="25">
 <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=black" width="auto" height="25">
-<img alt="Styled Components" src="https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white">
+<img alt="Styled Components" src="https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white" width="auto" height="25">
 
 ##### 💻 Backend
 
