@@ -108,6 +108,7 @@ Jmeter 를 통한 TPS 측정
     <tr align="center">
         <td>
         <b>Backend</b><br>
+        로그인 API 구현, Quiz게임 API 구현
         </td>
         <td>
         <b>Backend</b><br>ToMe와 FromMe 답글/투표/삭제/좋아요 API 구현<br>
