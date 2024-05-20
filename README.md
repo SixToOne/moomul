@@ -118,7 +118,7 @@ Jmeter 를 통한 TPS 측정
         <td>
         <b>Backend</b>
         <br> 
-        FromMe ToMe 피드 API 구현
+        FromMe ToMe 피드 API 구현<br>
         QUIZ 구현
         <br/>
         </td>
