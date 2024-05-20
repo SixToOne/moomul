@@ -116,7 +116,10 @@ Jmeter 를 통한 TPS 측정
         FromMe controller 통합테스트
         </td>
         <td>
-        <b>Backend</b><br> 
+        <b>Backend</b>
+        <br> 
+        FromMe ToMe 피드 API 구현
+        QUIZ 구현
         <br/>
         </td>
     </tr>
