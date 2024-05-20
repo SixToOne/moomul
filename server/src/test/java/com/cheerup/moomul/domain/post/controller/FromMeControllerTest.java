@@ -70,8 +70,6 @@ class FromMeControllerTest {
 		// saveAll() 에러 방지 초기화
 		commentRepository.deleteAll();
 		optionRepository.deleteAll();
-		voteRepository.deleteAll();
-		postLikeRepository.deleteAll();
 	}
 
 	@Test
@@ -275,10 +273,6 @@ class FromMeControllerTest {
 			responseType);
 
 		assertThat(responseEntity.getBody()).isNotNull();
-	}
-
-	@Test
-	void voteFromMe() {
 	}
 
 	@Test
