@@ -100,7 +100,7 @@ const Feed = () => {
 
   return (
     <>
-      <Tabs tabs={tabs} />
+      <Tabs tabs={username === userSession?.username ? tabs : tabs.slice(0, 2)} />
       {feedType === 'toMe' &&
         (toMeData && toMeData.length > 0 ? (
           toMeData.map((tomeItem) => {
