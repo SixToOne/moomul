@@ -67,12 +67,12 @@ Jmeter 를 통한 TPS 측정
         <br/>
         </td>
         <td>
-        <b>Backend</b><br>
+        <b>Frontend</b><br>
         <br/>
         </td>
         <td>
-        <b>Backend</b><br> 
-        <br/>
+        <b>Infra</b><br>Nginx 설정<br/> Jenkins CI&CD 파이프라인 작성<br/>EKS 쿠버네티스 환경 구성
+        <br/>        
         </td>
     </tr>
   </tr>
@@ -107,7 +107,7 @@ Jmeter 를 통한 TPS 측정
     </tr>
     <tr align="center">
         <td>
-        <b>Frontend</b><br>
+        <b>Backend</b><br>
         </td>
         <td>
         <b>Backend</b><br>ToMe와 FromMe 답글/투표/삭제/좋아요 API 구현<br>
@@ -116,7 +116,7 @@ Jmeter 를 통한 TPS 측정
         FromMe controller 통합테스트
         </td>
         <td>
-        <b>Infra</b><br>Nginx 설정<br/> Jenkins CI&CD 파이프라인 작성<br/>EKS 쿠버네티스 환경 구성
+        <b>Backend</b><br> 
         <br/>
         </td>
     </tr>
