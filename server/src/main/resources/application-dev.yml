@@ -44,5 +44,6 @@ decorator:
       enable-logging: true
 
 server:
+  port: ${SERVER_PORT}
   servlet:
     context-path: /api
