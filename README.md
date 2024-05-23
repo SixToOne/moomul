@@ -1,6 +1,8 @@
 # 🧩무엇이든 물어보고 알아가는 놀이터, 무물
 
-<img src=""/>
+<div align="center">
+  ![무물 타이틀 화면](/uploads/1021629764c99646b1a9e0bbc3f6124a/image.png)
+</div>
 
 <hr>
 
