@@ -13,8 +13,9 @@
 - [👥 팀 소개](#-팀-소개)
 - [🛠️ 기술 스택](#️-기술-스택)
 - [🌐 포팅 매뉴얼](#-포팅-매뉴얼)
-- [💻 서비스 화면](#-서비스-화면)
 - [📄 설계 문서](#-설계-문서)
+
+
 
 ### 📌 서비스 소개
 
@@ -27,6 +28,8 @@
 ### ⏱ 개발 기간
 
 - 2024.04.08 ~ 2024.05.24 (7주)
+
+
 
 ### 👥 팀 소개
 
@@ -113,9 +116,9 @@
         Quiz게임 API 구현<br>
         </td>
         <td>
-        <b>Backend</b><br>ToMe와 FromMe 답글/투표/삭제/좋아요 API 구현<br>
+        <b>Backend</b><br>답글/투표/삭제/좋아요 API 구현<br>
         Post/Option/Vote/PostLike repository 통합테스트<br>
-        ToMe와 FromMe 답글/투표/삭제/좋아요 service 단위테스트<br>
+        답글/투표/삭제/좋아요 service 단위테스트<br>
         FromMe controller 통합테스트
         </td>
         <td>
@@ -128,21 +131,25 @@
 
 </table>
 
+
+
 ### 🛠️ 기술 스택
 
 ##### 📱 Frontend
 
-<img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black" width="auto" height="25">
 <img src="https://img.shields.io/badge/typescript-3178C6?style=for-the-badge&logo=typescript&logoColor=black" width="auto" height="25">
+<img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black" width="auto" height="25">
 <img alt="Styled Components" src="https://img.shields.io/badge/styled--components-DB7093?style=for-the-badge&logo=styled-components&logoColor=white" width="auto" height="25">
 
 ##### 💻 Backend
 
-<img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" width="auto" height="25"> 
+<img alt="Java" src="https://img.shields.io/badge/java-%23ED8B00.svg?style=for-the-badge&logo=java&logoColor=white" width="auto" height="25">
+<img src="https://img.shields.io/badge/springboot-6DB33F?style=for-the-badge&logo=springboot&logoColor=white" width="auto" height="25">
 <img src="https://img.shields.io/badge/SPRING DATA JPA-6DB33F?style=for-the-badge&logoColor=white" width="auto" height="25"> 
 <img src="https://img.shields.io/badge/SPRING SECURITY-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white" width="auto" height="25">
 <img src="https://img.shields.io/badge/jwt-000000?style=for-the-badge&logo=jwt&logoColor=white" width="auto" height="25">
-<img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" width="auto" height="25"> 
+<img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white" width="auto" height="25">
+<br> 
 <img src="https://img.shields.io/badge/testcontainers-263238?style=for-the-badge&logo=testcontainers&logoColor=white" width="auto" height="25"> 
 <img src="https://img.shields.io/badge/jmeter-D22128?style=for-the-badge&logo=apachejmeter&logoColor=white" width="auto" height="25"> 
 <img src="https://img.shields.io/badge/junit5-25A162?style=for-the-badge&logo=junit5&logoColor=white" width="auto" height="25"> 
@@ -179,11 +186,7 @@
 
 [포팅 매뉴얼 보러가기](https://www.notion.so/barded/84aea8f22f314f09853262aa45bf606b)
 
-### 💻 서비스 화면
 
-#### [메인 페이지]
-
-<img src="" width=800px/>
 
 ### 📄 설계 문서
 
