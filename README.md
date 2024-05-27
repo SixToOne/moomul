@@ -12,14 +12,13 @@
 - [⏱ 개발 기간](#-개발-기간)
 - [👥 팀 소개](#-팀-소개)
 - [🛠️ 기술 스택](#️-기술-스택)
-- [💡 주요 기능](#-주요-기능)
 - [🌐 포팅 매뉴얼](#-포팅-매뉴얼)
 - [💻 서비스 화면](#-서비스-화면)
 - [📄 설계 문서](#-설계-문서)
 
 ### 📌 서비스 소개
 
-##### 소통이 가능한 서비스
+##### 익명으로 소통이 가능한 서비스
 - ToMe 기능을 통한 소통 기능
 - FromMe 기능을 통해 투표 혹은 글 작성 가능
 
@@ -64,17 +63,18 @@
     <tr align="center">
         <td>
         <b>Team Leader & Backend</b><br>댓글 생성 및 가져오기<br/>
-코드 품질 관리 (Testing)<br/>
-Jmeter 를 통한 TPS 측정
+        코드 품질 관리 (Testing)<br/>
+        Jmeter 를 통한 TPS 측정
         <br/>
         </td>
         <td>
-        <b>Frontend</b><br>
-        <br/>
+        <b>Frontend</b><br>로그인 / 회원가입<br>
+        무물 투표<br/>
         </td>
         <td>
-        <b>Infra</b><br>Nginx 설정<br/> Jenkins CI&CD 파이프라인 작성<br/>EKS 쿠버네티스 환경 구성
-        <br/>        
+        <b>Infra</b><br>Nginx 설정<br/> 
+        Jenkins CI&CD 파이프라인 작성<br/>
+        EKS 쿠버네티스 환경 구성<br/>        
         </td>
     </tr>
   </tr>
@@ -109,7 +109,8 @@ Jmeter 를 통한 TPS 측정
     </tr>
     <tr align="center">
         <td>
-        <b>Backend</b><br>
+        <b>Backend</b><br>로그인 API 구현<br>
+        Quiz게임 API 구현<br>
         </td>
         <td>
         <b>Backend</b><br>ToMe와 FromMe 답글/투표/삭제/좋아요 API 구현<br>
@@ -118,11 +119,9 @@ Jmeter 를 통한 TPS 측정
         FromMe controller 통합테스트
         </td>
         <td>
-        <b>Backend</b>
-        <br> 
+        <b>Backend</b><br> 
         FromMe ToMe 피드 API 구현<br>
-        QUIZ 구현
-        <br/>
+        QUIZ 구현<br>
         </td>
     </tr>
   </tr>
@@ -175,16 +174,10 @@ Jmeter 를 통한 TPS 측정
 <img src="https://img.shields.io/badge/Vim-019733?style=for-the-badge&logo=vim&logoColor=white" width="auto" height="25" />
 
 
-### 💡 주요 기능
-
-#### 1. ToMe
-
-#### 2. FromMe
-
 
 ### 🌐 포팅 매뉴얼
 
-[포팅 매뉴얼 보러가기](https://lab.ssafy.com/s10-blockchain-contract-sub2/S10P22A708/-/blob/master/exec/Porting%20Manual.md?ref_type=heads)
+[포팅 매뉴얼 보러가기](https://www.notion.so/barded/84aea8f22f314f09853262aa45bf606b)
 
 ### 💻 서비스 화면
 
@@ -196,16 +189,16 @@ Jmeter 를 통한 TPS 측정
 
 #### 1. ERD
 
-<img src="" width="1000px"/>
+<div width="1000px">
+  ![erd](/uploads/e2a3c0bfaa28d8e1913bea51cc6b406f/erd.PNG)
+</div>
 
 #### 2. 아키텍처
 
-<img src="" width="1000px"/>
+<div width="1000px">
+  ![아키텍처](/uploads/bdaa211b0e3d4d78a613940de2205a7d/아키텍처.png)
+</div>
 
-#### [3. Mockup]()
+#### [3. 요구 사항 명세서](https://www.notion.so/barded/ff168759aa89438b9585d8243a66baac)
 
-
-
-#### [4. 요구 사항 명세서]()
-
-#### [5. API 명세서]()
+#### [4. API 명세서](https://www.notion.so/barded/e8e7cdbc8cdf434c9123e795053b38b4?v=524113749c2842c6bbb55c0318d6f461)
